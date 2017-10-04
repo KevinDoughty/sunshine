@@ -6,7 +6,7 @@
 //import deepFreeze from "deep-freeze"; // debug
 
 import { h, Component } from "preact";
-import { bind } from "decko";
+//import { bind } from "decko";
 
 import { connect } from "preact-redux";
 import * as actions from "./actions.js";
@@ -25,7 +25,6 @@ const vec3 = require("gl-matrix").vec3; // trackball
 
 // Import Web Helper Libraries
 const isMobile = require("is-mobile");
-
 
 //const lgp = require("lgp");
 const guf = require("guf");
