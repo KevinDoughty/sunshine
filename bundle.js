@@ -13249,7 +13249,6 @@ var gXCenterTrackball = 0;
 var gYCenterTrackball = 0;
 
 function startTrackball(x, y, originX, originY, width, height) {
-	//console.log("start x:%s; y:%s; ox:%s; oy:%s; w:%s; h:%s;",x,y,originX,originY,width,height);
 	/* Start up the trackball.  The trackball works by pretending that a ball
     encloses the 3D view.  You roll this pretend ball with the mouse.  For
     example, if you click on the center of the ball and move the mouse straight
