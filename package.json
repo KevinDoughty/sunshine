@@ -1,0 +1,63 @@
+{
+  "name": "sunshine",
+  "version": "1.0.0",
+  "description": "a 3d printable sun",
+  "main": "bundle.js",
+  "scripts": {
+    "build": "WEBPACK_ENV=build webpack --progress --colors",
+    "dev": "WEBPACK_ENV=dev webpack --progress --colors --watch",
+    "test": "eslint source/*.js"
+  },
+  "browserify": {
+    "transform": [
+      "glslify"
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^3.19.0",
+    "glslify-loader": "^1.0.2",
+    "ify-loader": "^1.0.4",
+    "jsx-loader": "^0.13.2",
+    "raw-loader": "^0.5.1",
+    "webpack": "^2.6.1",
+    "webpack-dev-server": "^2.5.0"
+  },
+  "dependencies": {
+    "bezier": "^0.1.0",
+    "canvas-fit": "^1.5.0",
+    "cga": "^1.0.8",
+    "decko": "^1.2.0",
+    "deep-freeze": "0.0.1",
+    "gl-clear": "^2.0.0",
+    "gl-context": "^0.1.1",
+    "gl-geometry": "3.1.0",
+    "gl-matrix": "^2.3.2",
+    "gl-shader": "4.2.0",
+    "glslify": "5.0.2",
+    "glslify-loader": "^1.0.2",
+    "guf": "^1.0.3",
+    "hyperact": "0.0.12",
+    "ify-loader": "^1.0.4",
+    "is-mobile": "^0.2.2",
+    "key-pressed": "0.0.1",
+    "lgp": "^1.0.4",
+    "mda": "^1.1.1",
+    "nsc": "^1.0.2",
+    "preact": "^8.1.0",
+    "preact-compat": "^3.16.0",
+    "preact-redux": "^2.0.2",
+    "preact-small-redux": "^1.0.0",
+    "query-string": "^4.3.4",
+    "raw-loader": "^0.5.1",
+    "redux": "^3.7.1",
+    "reselect": "^3.0.1",
+    "small-redux": "^1.0.0",
+    "ycam": "^1.0.2"
+  },
+  "license": "Apache-2.0"
+}
