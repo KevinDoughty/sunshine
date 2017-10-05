@@ -3927,17 +3927,14 @@ var vec3 = __webpack_require__(0).vec3;
 var test = mda.MeshIntegrity;
 var createFace = mda.CreateFaceOperator;
 
-var plotFancy = true;
-var extraFancy = true;
-var fakeExtrude = true;
+var plotFancy = true; // beam sub triangles, both plotFancy and extraFancy have to be true
+var extraFancy = true; // beam sub triangles subdivided into even more sub triangle strips
+var fakeExtrude = true; // TODO: create a proper face with more than just 3 half edges to extrude
 
 var debugA = false;
 var debugB = false;
 var debugTop = false;
 var debugBottom = false;
-
-var manualPlatform = false;
-var bottomFace = false;
 
 var half = Math.PI;
 var quarter = half / 2;
@@ -4130,20 +4127,6 @@ var beamFullTopThetaSelector = (0, _reselect.createSelector)( // not isosceles i
 	var result = quarter - A;
 	return result;
 });
-var beamShortTopThetaSelector = (0, _reselect.createSelector)( // not isosceles if squashed
-[radiusSelector, sunRatioSelector, starRatioSelector, beamTopExtendedSelector, horizonRatioSelector, sunRadiusSelector], function (radius, sunRatio, starRatio, beamTopExtended, horizonRatio, sunRadius) {
-	console.log("beamShortTopThetaSelector is not used");
-	var sunH = sunHeight(radius, sunRatio, horizonRatio);
-	var starH = starHeight(sunH, starRatio);
-	var angleH = starTopAngle(radius, starH, null, horizonRatio);
-	var c = starH;
-	var b = sunH;
-	var B = angleH;
-	var C = Math.asin(c / b * Math.sin(B));
-	var A = half - B - C;
-	var result = quarter - A;
-	return result;
-});
 
 var ringDeltaTopSelector = (0, _reselect.createSelector)([settingsSelector, beamFullTopThetaSelector], function (settings, beamTopTheta) {
 	var minus = quarter - beamTopTheta;
@@ -4276,7 +4259,6 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var theta = i * ringDeltaTop; // need two passes, above beam top and below beam top.
 		var cosTheta = Math.cos(theta);
 		var sinTheta = Math.sin(theta);
-		var height = manualPlatform ? baseHeight : 0;
 		for (var j = 0; j <= slices; j++) {
 			// longitude // slices
 			var phi = j * sliceDelta;
@@ -4285,7 +4267,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var x = cosPhi * sinTheta;
 			var z = cosTheta;
 			var y = sinPhi * sinTheta;
-			vertexData.push([x * sunRadius, y * sunRadius, z * sunHeight + height]); // scaling z axis
+			vertexData.push([x * sunRadius, y * sunRadius, z * sunHeight]); // scaling z axis
 		}
 	}
 
@@ -4296,7 +4278,6 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var _theta = quarter - beamThetaArray[_i];
 		var _cosTheta = Math.cos(_theta);
 		var _sinTheta = Math.sin(_theta);
-		var _height = manualPlatform ? baseHeight : 0; //i<intersectionAreaRings ? baseHeight : 0;
 		for (var _j = 0; _j <= slices; _j++) {
 			// longitude // slices
 			var _phi = _j * sliceDelta;
@@ -4305,12 +4286,12 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _x = _cosPhi * _sinTheta;
 			var _z = _cosTheta;
 			var _y = _sinPhi * _sinTheta;
-			vertexData.push([_x * sunRadius, _y * sunRadius, _z * sunHeight + _height]);
+			vertexData.push([_x * sunRadius, _y * sunRadius, _z * sunHeight]);
 		}
 	}
 
 	// ANCHOR VERTEX
-	vertexData.push([0, 0, manualPlatform ? baseHeight : 0]); // anchor
+	vertexData.push([0, 0, 0]); // anchor
 
 
 	// BEAM TIP VERTICES
@@ -4320,8 +4301,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var a = _i2 / fullBeamCount * arcRadians;
 		var _x2 = Math.cos(a) * radius;
 		var _y2 = Math.sin(a) * radius;
-		var _height2 = manualPlatform ? baseHeight : 0;
-		vertexData.push([_x2, _y2, _height2]);
+		vertexData.push([_x2, _y2, 0]);
 	}
 
 	// BEAM VARIABLES
@@ -4434,7 +4414,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var _theta2 = Math.PI / 2.0;
 		var _cosTheta2 = Math.cos(_theta2);
 		var _sinTheta2 = Math.sin(_theta2);
-		var _height3 = -baseHeight;
+		var height = -baseHeight;
 		for (var _j3 = 0; _j3 <= slices; _j3++) {
 			// pedestal sun underside
 			var _phi2 = _j3 * sliceDelta;
@@ -4526,15 +4506,15 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			var underTwo = underOne + 1;
 			if (!extraFancy) {
 				indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-				if (!bottomFace) indexData.push([underOne, underTwo, tipIndex]); // beam underside
+				indexData.push([underOne, underTwo, tipIndex]); // beam underside
 			} else {
 				var a = 0;
 				var midFirst = location + level + a;
 				var midSecond = nextLocation + nextLevel + a;
 				if (!debugA && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
 				if (!debugB && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-				if (!bottomFace && !debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst + per]);
-				if (!bottomFace && !debugB && !debugBottom) indexData.push([underTwo, midSecond + per, midFirst + per]);
+				if (!debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst + per]);
+				if (!debugB && !debugBottom) indexData.push([underTwo, midSecond + per, midFirst + per]);
 				for (a = 1; a < per; a++) {
 					var previousFirst = location + level + (a - 1);
 					var previousSecond = nextLocation + nextLevel + (a - 1);
@@ -4542,8 +4522,8 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 					var nextSecond = nextLocation + nextLevel + a;
 					if (!debugA && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
 					if (!debugB && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-					if (!bottomFace && !debugA && !debugBottom) indexData.push([previousSecond + per, nextFirst + per, previousFirst + per]);
-					if (!bottomFace && !debugB && !debugBottom) indexData.push([previousSecond + per, nextSecond + per, nextFirst + per]);
+					if (!debugA && !debugBottom) indexData.push([previousSecond + per, nextFirst + per, previousFirst + per]);
+					if (!debugB && !debugBottom) indexData.push([previousSecond + per, nextSecond + per, nextFirst + per]);
 				}
 			}
 		}
@@ -4564,15 +4544,15 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			var _underTwo2 = _underOne2 + 1;
 			if (!extraFancy) {
 				indexData.push([_secondRoot2, _firstRoot5, tipIndex]); // beam top side
-				if (!bottomFace) indexData.push([_underOne2, _underTwo2, tipIndex]); // beam underside
+				indexData.push([_underOne2, _underTwo2, tipIndex]); // beam underside
 			} else {
 				var _a10 = 0;
 				var _midFirst4 = _location4 + _level2 + _a10;
 				var _midSecond = _nextLocation2 + _nextLevel2 + _a10;
 				if (!debugA && !debugTop) indexData.push([_secondRoot2, _firstRoot5, _midFirst4]);
 				if (!debugB && !debugTop) indexData.push([_secondRoot2, _midFirst4, _midSecond]);
-				if (!bottomFace && !debugA && !debugBottom) indexData.push([_underOne2, _underTwo2, _midFirst4 + per]);
-				if (!bottomFace && !debugB && !debugBottom) indexData.push([_underTwo2, _midSecond + per, _midFirst4 + per]);
+				if (!debugA && !debugBottom) indexData.push([_underOne2, _underTwo2, _midFirst4 + per]);
+				if (!debugB && !debugBottom) indexData.push([_underTwo2, _midSecond + per, _midFirst4 + per]);
 				for (_a10 = 1; _a10 < per; _a10++) {
 					var _previousFirst = _location4 + _level2 + (_a10 - 1);
 					var _previousSecond = _nextLocation2 + _nextLevel2 + (_a10 - 1);
@@ -4580,8 +4560,8 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 					var _nextSecond = _nextLocation2 + _nextLevel2 + _a10;
 					if (!debugA && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst4]);
 					if (!debugB && !debugTop) indexData.push([_previousSecond, _nextFirst4, _nextSecond]);
-					if (!bottomFace && !debugA && !debugBottom) indexData.push([_previousSecond + per, _nextFirst4 + per, _previousFirst + per]);
-					if (!bottomFace && !debugB && !debugBottom) indexData.push([_previousSecond + per, _nextSecond + per, _nextFirst4 + per]);
+					if (!debugA && !debugBottom) indexData.push([_previousSecond + per, _nextFirst4 + per, _previousFirst + per]);
+					if (!debugB && !debugBottom) indexData.push([_previousSecond + per, _nextSecond + per, _nextFirst4 + per]);
 				}
 			}
 		}
@@ -4685,10 +4665,10 @@ var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVert
 	var mesh = new Mesh();
 	mesh.setPositions(sunVertices);
 	mesh.setCells(cells);
-	mesh.process(); // see if you can avoid doing this twice
+	mesh.process();
 	var shift = vec3.create();
 	vec3.set(shift, 0, 0, -baseHeight);
-	mesh.process();
+	move(mesh, shift);
 	return mesh;
 });
 
@@ -10829,7 +10809,6 @@ var BezierCell = function (_Component) {
 			var threshold = 15;
 			var element = this.element;
 			var dimension = this.dimension;
-
 			var rect = element.getBoundingClientRect();
 			this.rect = rect;
 			var x = e.clientX - rect.left;
@@ -10872,21 +10851,16 @@ var BezierCell = function (_Component) {
 			var childNodes = this.props.node.childNodes;
 			var dimension = this.dimension;
 			var R = dimension;
-			var r = 1;
-
 			var x0 = this.props.value[0];
 			var y0 = this.props.value[1];
 			var x1 = this.props.value[2];
 			var y1 = this.props.value[3];
-
 			var x = [0, x0, x1, 1];
 			var y = [0, y0, y1, 1];
-
-			var width = this.dimension;
-			var height = this.dimension;
+			var width = dimension;
+			var height = dimension;
 			canvas.width = width;
 			canvas.height = height;
-
 			context.clearRect(0, 0, width, height);
 			context.beginPath();
 			for (var t = 0; t < 1; t += 0.01) {
@@ -10894,19 +10868,16 @@ var BezierCell = function (_Component) {
 				var Y = cubic(y, t) * R;
 				context.lineTo(X, dimension - Y);
 			}
-
 			context.moveTo(0, dimension - 0);
 			context.lineTo(x0 * R, dimension - y0 * R);
 			context.moveTo(R, dimension - R);
 			context.lineTo(x1 * R, dimension - y1 * R);
-
 			context.stroke();
 			context.closePath();
 		}
 	}, {
 		key: "render",
 		value: function render() {
-
 			var canvasProps = {
 				ref: this.refCallback,
 				onMouseDown: this.mouseDown,
@@ -10916,9 +10887,7 @@ var BezierCell = function (_Component) {
 					position: "relative"
 				}
 			};
-
 			var canvas = (0, _preact.h)("canvas", canvasProps);
-
 			return canvas;
 		}
 	}]);
@@ -12966,7 +12935,7 @@ var bookBezier = [{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin"
 
 var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[0] }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 2 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false }, { "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 }];
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false }, { "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true }];
 var test = [{ "id": "useTest", "displayName": "Use Test", "type": "bool", "default": false }, { "id": "bezier", "displayName": "Cubic Bezier", "type": "bezier", "default": bookBezier }, { "id": "pageRatio", "displayName": "Page ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];

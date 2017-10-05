@@ -23,6 +23,7 @@ const beam = [
 	{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 },
 	{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false },
 	{ "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 },
+	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true},
 ];
 const test = [
 	{ "id": "useTest", "displayName": "Use Test", "type": "bool", "default": false },

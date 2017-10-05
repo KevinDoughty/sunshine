@@ -4,7 +4,6 @@ const cubic = require("bezier").prepare(4);
 
 
 const BezierCell = (class extends Component {
-
 	constructor(props) {
 		super(props);
 		this.element = null;
@@ -41,7 +40,6 @@ const BezierCell = (class extends Component {
 		const threshold = 15;
 		const element = this.element;
 		const dimension = this.dimension;
-
 		const rect = element.getBoundingClientRect();
 		this.rect = rect;
 		const x = e.clientX - rect.left;
@@ -60,11 +58,9 @@ const BezierCell = (class extends Component {
 			document.addEventListener("mouseup",this.mouseUp);
 		}
 	}
-
 	componentDidUpdate() {
 		this.draw();
 	}
-
 	refCallback(element) {
 		if (this.element === null) {
 			this.element = element;
@@ -80,39 +76,31 @@ const BezierCell = (class extends Component {
 		const childNodes = this.props.node.childNodes;
 		const dimension = this.dimension;
 		const R = dimension;
-		const r = 1;
-
 		const x0 = this.props.value[0];
 		const y0 = this.props.value[1];
 		const x1 = this.props.value[2];
 		const y1 = this.props.value[3];
-
-		var x = [0, x0, x1, 1];
-		var y = [0, y0, y1, 1];
-
-		const width = this.dimension;
-		const height = this.dimension;
+		const x = [0, x0, x1, 1];
+		const y = [0, y0, y1, 1];
+		const width = dimension;
+		const height = dimension;
 		canvas.width = width;
 		canvas.height = height;
-		
 		context.clearRect(0, 0, width, height);
 		context.beginPath();
-		for (var t = 0; t < 1; t += 0.01) {
+		for (let t=0; t<1; t += 0.01) {
 			const X = cubic(x, t) * R;
 			const Y = cubic(y, t) * R;
 			context.lineTo(X, dimension-Y);
 		}
-		
 		context.moveTo(0,dimension-0);
 		context.lineTo(x0*R,dimension-y0*R);
 		context.moveTo(R,dimension-R);
 		context.lineTo(x1*R,dimension-y1*R);
-		
 		context.stroke();
 		context.closePath();
 	}
 	render() {
-
 		const canvasProps = {
 			ref: this.refCallback,
 			onMouseDown: this.mouseDown,
@@ -122,11 +110,9 @@ const BezierCell = (class extends Component {
 				position:"relative"
 			}
 		}
-
 		const canvas = (
 			<canvas {...canvasProps} />
 		);
-
 		return canvas;
 	}
 });

@@ -11,19 +11,14 @@ const vec3 = require('gl-matrix').vec3;
 const test = mda.MeshIntegrity;
 const createFace = mda.CreateFaceOperator;
 
-
-const plotFancy = true;
-const extraFancy = true;
-const fakeExtrude = true;
+const plotFancy = true; // beam sub triangles, both plotFancy and extraFancy have to be true
+const extraFancy = true; // beam sub triangles subdivided into even more sub triangle strips
+const fakeExtrude = true; // TODO: create a proper face with more than just 3 half edges to extrude
 
 const debugA = false;
 const debugB = false;
 const debugTop = false;
 const debugBottom = false;
-
-const manualPlatform = false;
-const bottomFace = false;
-
 
 const half = Math.PI;
 const quarter = half / 2;
@@ -226,22 +221,6 @@ const beamFullTopThetaSelector = createSelector( // not isosceles if squashed
 		return result;
 	}
 );
-const beamShortTopThetaSelector = createSelector( // not isosceles if squashed
-	[radiusSelector, sunRatioSelector, starRatioSelector, beamTopExtendedSelector, horizonRatioSelector, sunRadiusSelector],
-	(radius, sunRatio, starRatio, beamTopExtended, horizonRatio, sunRadius) => {
-		console.log("beamShortTopThetaSelector is not used");
-		const sunH = sunHeight(radius, sunRatio, horizonRatio);
-		const starH = starHeight(sunH, starRatio);
-		const angleH = starTopAngle(radius, starH, null, horizonRatio);
-		const c = starH;
-		const b = sunH;
-		const B = angleH;
-		const C = Math.asin( c / b * Math.sin(B) );
-		const A = half - B - C;
-		const result = quarter - A;
-		return result;
-	}
-);
 
 
 const ringDeltaTopSelector = createSelector([settingsSelector,beamFullTopThetaSelector], (settings, beamTopTheta) => {
@@ -380,7 +359,6 @@ const sunVerticesSelector = createSelector(
 			const theta = i * ringDeltaTop; // need two passes, above beam top and below beam top.
 			const cosTheta = Math.cos(theta);
 			const sinTheta = Math.sin(theta);
-			const height = manualPlatform ? baseHeight : 0;
 			for (let j=0; j<=slices; j++) { // longitude // slices
 				const phi = j * sliceDelta;
 				const cosPhi = Math.cos(phi);
@@ -388,7 +366,7 @@ const sunVerticesSelector = createSelector(
 				const x = cosPhi * sinTheta;
 				const z = cosTheta;
 				const y = sinPhi * sinTheta;
-				vertexData.push([x*sunRadius, y*sunRadius, z*sunHeight + height]); // scaling z axis
+				vertexData.push([x*sunRadius, y*sunRadius, z*sunHeight]); // scaling z axis
 			}
 		}
 
@@ -398,7 +376,6 @@ const sunVerticesSelector = createSelector(
 			const theta = quarter - beamThetaArray[i];
 			const cosTheta = Math.cos(theta);
 			const sinTheta = Math.sin(theta);
-			const height = manualPlatform ? baseHeight : 0;//i<intersectionAreaRings ? baseHeight : 0;
 			for (let j=0; j<=slices; j++) { // longitude // slices
 				const phi = j * sliceDelta;
 				const cosPhi = Math.cos(phi);
@@ -406,13 +383,13 @@ const sunVerticesSelector = createSelector(
 				const x = cosPhi * sinTheta;
 				const z = cosTheta;
 				const y = sinPhi * sinTheta;
-				vertexData.push([x*sunRadius, y*sunRadius, z*sunHeight + height]);
+				vertexData.push([x*sunRadius, y*sunRadius, z*sunHeight]);
 			}
 		}
 
 
 // ANCHOR VERTEX
-		vertexData.push([0,0,manualPlatform ? baseHeight : 0]); // anchor
+		vertexData.push([0,0,0]); // anchor
 
 
 // BEAM TIP VERTICES
@@ -421,8 +398,7 @@ const sunVerticesSelector = createSelector(
 			const a = i / fullBeamCount * arcRadians;
 			const x = Math.cos(a) * radius;
 			const y = Math.sin(a) * radius;
-			const height = manualPlatform ? baseHeight : 0;
-			vertexData.push([x, y, height]);
+			vertexData.push([x, y, 0]);
 		}
 
 
@@ -650,15 +626,15 @@ const sunIndicesSelector = createSelector(
 				const underTwo = underOne + 1;
 				if (!extraFancy) {
 					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-					if (!bottomFace) indexData.push([underOne, underTwo, tipIndex]); // beam underside
+					indexData.push([underOne, underTwo, tipIndex]); // beam underside
 				} else {
 					let a = 0;
 					const midFirst = location + level + a;
 					const midSecond = nextLocation + nextLevel + a;
 					if (!debugA && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
 					if (!debugB && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-					if (!bottomFace && !debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
-					if (!bottomFace && !debugB && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
+					if (!debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
+					if (!debugB && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
 					for (a=1; a<per; a++) {
 						const previousFirst = location + level + (a - 1);
 						const previousSecond = nextLocation + nextLevel + (a - 1);
@@ -666,8 +642,8 @@ const sunIndicesSelector = createSelector(
 						const nextSecond = nextLocation + nextLevel + a;
 						if (!debugA && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
 						if (!debugB && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!bottomFace && !debugA && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
-						if (!bottomFace && !debugB && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+						if (!debugA && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
+						if (!debugB && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
 					}
 				}
 
@@ -689,15 +665,15 @@ const sunIndicesSelector = createSelector(
 				const underTwo = underOne + 1;
 				if (!extraFancy) {
 					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-					if (!bottomFace) indexData.push([underOne, underTwo, tipIndex]); // beam underside
+					indexData.push([underOne, underTwo, tipIndex]); // beam underside
 				} else {
 					let a = 0;
 					const midFirst = location + level + a;
 					const midSecond = nextLocation + nextLevel + a;
 					if (!debugA && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
 					if (!debugB && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-					if (!bottomFace && !debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
-					if (!bottomFace && !debugB && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
+					if (!debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
+					if (!debugB && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
 					for (a=1; a<per; a++) {
 						const previousFirst = location + level + (a - 1);
 						const previousSecond = nextLocation + nextLevel + (a - 1);
@@ -705,8 +681,8 @@ const sunIndicesSelector = createSelector(
 						const nextSecond = nextLocation + nextLevel + a;
 						if (!debugA && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
 						if (!debugB && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!bottomFace && !debugA && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
-						if (!bottomFace && !debugB && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+						if (!debugA && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
+						if (!debugB && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
 					}
 				}
 			}
@@ -809,10 +785,10 @@ export const meshSelector = createSelector(
 		const mesh = new Mesh();
 		mesh.setPositions(sunVertices);
 		mesh.setCells(cells);
-		mesh.process(); // see if you can avoid doing this twice
+		mesh.process();
 		const shift = vec3.create();
 		vec3.set(shift, 0, 0, -baseHeight);
-		mesh.process();
+		move(mesh,shift);
 		return mesh;
 	}
 );
