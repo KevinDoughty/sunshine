@@ -46,7 +46,7 @@ class App extends Component {
 
 		return (
 			<PairView {...pairProps} >
-				<ListPane />
+				<ListPane fileName="sunshine" />
 				<Interact
 					radius={20}
 					rings={50}

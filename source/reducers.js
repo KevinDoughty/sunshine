@@ -173,7 +173,7 @@ function draggingDivider(state,action) {
 	}
 	return state;
 }
-function dividerRatio(state = 0.25, action) {
+function dividerRatio(state = 0.333, action) {
 	if (action.type === actions.RESIZE_DIVIDER) return action.value;
 	return state;
 }

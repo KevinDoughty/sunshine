@@ -29,7 +29,8 @@ const ListPane = props => {
 	};
 	const headerProps = {
 		key: "ListHeader",
-		frame: headerFrame
+		frame: headerFrame,
+		fileName: props.fileName
 	};
 	const viewProps = {
 		dimension: 20,

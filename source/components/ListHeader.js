@@ -26,7 +26,7 @@ class ListHeader extends Component {
 
 	handleStlClick(e) {
 		const mesh = this.props.mesh;
-		lgp.fileWriter("ycam_tutorial.stl", serializeStl( {
+		lgp.fileWriter(this.props.fileName+".stl", serializeStl( {
 			positions: mesh.positions,
 			cells: mesh.cells
 		}));
@@ -34,7 +34,7 @@ class ListHeader extends Component {
 	
 	handleObjClick(e) {
 		const mesh = this.props.mesh;
-		lgp.fileWriter("ycam_tutorial.obj", lgp.objSerializer( {
+		lgp.fileWriter(this.props.fileName+".obj", lgp.objSerializer( {
 			positions: mesh.positions,
 			cells: mesh.cells
 		}));

@@ -26,28 +26,28 @@ function compatibleNumber(num) {
 
 function serializeStlPrivate( input, index ) {
 	if( input.positions === undefined || input.cells === undefined ) {
-		throw "Input Not Valid: Does not contain any positions or cells";
+		throw new Error("Input Not Valid: Does not contain any positions or cells");
 	}
 	var name = "";
 	var cells;
 	if (input.cells[ 0 ].constructor === Array) {
 		cells = normalize( input.cells );
-		console.log("serializeStl normalize inputCells:%s;",JSON.stringify(cells));
+		//console.log("serializeStl normalize inputCells:%s;",JSON.stringify(cells));
 	} else {
 		cells = input.cells;
 	}
 	var positions = input.positions;
 	if (typeof input.positions[0] === Array || typeof input.positions[0] === Float32Array) { // eslint-disable-line no-undef
-		console.log("serializeStl normalize positions pre:%s;",JSON.stringify(input.positions));
+		//console.log("serializeStl normalize positions pre:%s;",JSON.stringify(input.positions));
 		positions = normalize( input.positions );
-		console.log("serializeStl normalize positions post:%s;",JSON.stringify(positions));
+		//console.log("serializeStl normalize positions post:%s;",JSON.stringify(positions));
 	} else {
-		console.log("serializeStl positions:%s;",JSON.stringify(positions));
+		//console.log("serializeStl positions:%s;",JSON.stringify(positions));
 	}
 
 	var normals = undefined;
 	if( input.normals !== undefined ) {
-		console.log("input normals untested:%s;",JSON.stringify(input.normals));
+		//console.log("input normals untested:%s;",JSON.stringify(input.normals));
 		normals = input.normals[0].constructor === Array ? normalize( input.normals ) : input.normals;
 	}
 	else {
