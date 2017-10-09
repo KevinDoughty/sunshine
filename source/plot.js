@@ -7,10 +7,10 @@ import { normalizedTreeDictSelector } from "./selectors.js";
 const mda = require("mda");
 const Mesh = mda.Mesh;
 const move = mda.MoveOperator;
-const vec3 = require('gl-matrix').vec3;
-const check = mda.MeshIntegrity;
+const vec3 = require("gl-matrix").vec3;
+//const check = mda.MeshIntegrity;
 //const createFace = mda.CreateFaceOperator;
-const bezier = require("bezier");
+//const bezier = require("bezier");
 const cubic = require("bezier").prepare(4);
 
 const plotFancy = true; // beam sub triangles, both plotFancy and extraFancy have to be true
@@ -20,8 +20,8 @@ const fakeExtrude = true; // TODO: create a proper face with more than just 3 ha
 const half = Math.PI;
 const quarter = half / 2;
 
-const d2r = Math.PI / 180; // debug
-const r2d = 180 / Math.PI; // debug
+//const d2r = Math.PI / 180; // debug
+//const r2d = 180 / Math.PI; // debug
 
 
 export const settingsSelector = createSelector(
@@ -76,12 +76,12 @@ const sunHeightSelector = createSelector(
 	}
 );
 
-const starHeightSelector = createSelector(
-	[sunHeightSelector, starRatioSelector],
-	(sunHeight, starRatio) => {
-		return sunHeight * starRatio;
-	}
-);
+// const starHeightSelector = createSelector(
+// 	[sunHeightSelector, starRatioSelector],
+// 	(sunHeight, starRatio) => {
+// 		return sunHeight * starRatio;
+// 	}
+// );
 
 const arcRadiansSelector = createSelector(
 	[sphereFractionSelector],
@@ -108,7 +108,7 @@ const slicesSelector = createSelector( // longitude // pie slices. subtract a sl
 const sliceDeltaSelector = createSelector(
 	[sphereFractionSelector, slicesSelector],
 	(sphereFraction, slices) => {
-		if (sphereFraction === "quarter") return Math.PI / slices / 2
+		if (sphereFraction === "quarter") return Math.PI / slices / 2;
 		if (sphereFraction === "half") return Math.PI / slices;
 		return Math.PI / slices * 2; // whole
 	}
@@ -123,29 +123,29 @@ const fullBeamCountSelector = createSelector(
 	}
 );
 
-const starBasePointsSelector = createSelector(
-	[arcRadiansSelector, fullBeamCountSelector, radiusSelector, sunRadiusSelector, baseHeightSelector],
-	(arcRadians, fullBeamCount, radius, sunRadius, baseHeight) => {
-		const r = radius;
-		const r2 = sunRadius;
-		const divisions = fullBeamCount * 2;
-		const points = [];
-		const z = 0;
-		points.push([0,0,z]);
-		for (let i = 0; i <= divisions; i++) {
-			const a = i / divisions * arcRadians;
-			const r3 = (i % 2) ? r2 : r;
-			const x = Math.cos(a) * r3;
-			const y = Math.sin(a) * r3;
-			points.push([x, y, z]);
-		}
-		return points;
-	}
-);
+// const starBasePointsSelector = createSelector(
+// 	[arcRadiansSelector, fullBeamCountSelector, radiusSelector, sunRadiusSelector, baseHeightSelector],
+// 	(arcRadians, fullBeamCount, radius, sunRadius, baseHeight) => {
+// 		const r = radius;
+// 		const r2 = sunRadius;
+// 		const divisions = fullBeamCount * 2;
+// 		const points = [];
+// 		const z = 0;
+// 		points.push([0,0,z]);
+// 		for (let i = 0; i <= divisions; i++) {
+// 			const a = i / divisions * arcRadians;
+// 			const r3 = (i % 2) ? r2 : r;
+// 			const x = Math.cos(a) * r3;
+// 			const y = Math.sin(a) * r3;
+// 			points.push([x, y, z]);
+// 		}
+// 		return points;
+// 	}
+// );
 
-function sunHeight(radius, sunRatio, horizonRatio) {
-	return radius * sunRatio * horizonRatio;
-}
+// function sunHeight(radius, sunRatio, horizonRatio) {
+// 	return radius * sunRatio * horizonRatio;
+// }
 
 function starHeight(sunHeight, starRatio) {
 	return sunHeight * starRatio;
@@ -166,7 +166,6 @@ function starTopAngle(radius, starHeight) {
 }
 
 function calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, fullRadius, sunRadius, debug) { // "step 1"
-	const degrees = r2d;
 	const divisions = fullBeamCount * 2; // 2 divisions per beam
 	const aboveCenterDivisionTheta = 1 / divisions * arcRadians; // from above, slice angle per division
 	const aboveCenterBeamTheta = 1 / fullBeamCount * arcRadians; // should just simply be aboveCenterDivisionTheta * 2
@@ -198,8 +197,7 @@ const beamThetaArraySelector = createSelector( // step 2
 			const theta = i * sliceDelta;
 			const debug = (i === per);
 			let starRadius = calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, radius, sunRadius, debug);
-			if (false && i === per) starRadius = sunR; // yes
-			const sunH = sunHeight(radius, sunRatio, horizonRatio);
+// 			if (false && i === per) starRadius = sunR; // yes
 			const sunR = radius * horizonRatio;
 			const starH = starHeight(sunR, starRatio);
 			const angleH = starTopAngle(starRadius, starH);
@@ -209,8 +207,9 @@ const beamThetaArraySelector = createSelector( // step 2
 			const C = Math.asin( c / b * Math.sin(B) );
 			const A = half - B - C;
 			let result = quarter - A;
-			if (false && i === per) points.push(0); // yes
-			else points.push(result);
+// 			if (false && i === per) points.push(0); // yes
+// 			else
+			points.push(result);
 		}
 		return points;
 	}
@@ -251,7 +250,6 @@ const faceIndicesSelector = createSelector(
 		const intersectionAreaRings = beamThetaArray.length-1;
 		const anchor = (rings+intersectionAreaRings+1) * (slices+1);
 		const tips = anchor + 1;
-		const count = tips + fullBeamCount + 1;
 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
 		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
@@ -270,42 +268,30 @@ const faceIndicesSelector = createSelector(
 			}
 		}
 
-	if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
-
+		if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
 			const larger = j % (per * 2);
 			const smaller = j % per;
 			let i = smaller;
 			const division = Math.floor( j / per );
 			const tipNumber = Math.ceil( division / 2 ) ;
 			const tipIndex = tips + tipNumber;
-
 			const isLastEdge = !((j + 1 + per) % (per * 2));
 			const notLastEdge = (j + 1 + per) % (per * 2);
-			
-			const notBeamValley = (j + per) % (per * 2);
+			//const notBeamValley = (j + per) % (per * 2);
 			const isBeamValley = !((j + per) % (per * 2));
-
 			if (larger < per) {
-				const firstRoot = (rings + i) * (slices + 1) + j;
-				const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
 				const additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
 				const slice = j + additional;
 				
 				let location = extraFancyStart;
 				let nextLocation = location;
-				let level = (slice * per * 2);
 				let nextSlice = slice+1;
 				let nextLevel = (nextSlice * per * 2);
-				const k = (rings+intersectionAreaRings) * (slices + 1);
-				const underOne = k + j;
-				const underTwo = underOne + 1;
-				const midFirst = location + level;
 				const midSecond = nextLocation + nextLevel;
 				if (isLastEdge) {
 					faceIndices.push(tipIndex);
 					let a = per;
 					while (--a) {
-						const nextFirst = location + level + a;
 						const nextSecond = nextLocation + nextLevel + a;
 						faceIndices.push(nextSecond);
 					}
@@ -315,18 +301,11 @@ const faceIndicesSelector = createSelector(
 
 			if (larger >= per) {
 				if (notLastEdge) i = per - i;
-				let firstRoot = (rings + i) * (slices + 1) + j;
-				let secondRoot = firstRoot - slices;
 				const slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
 				let location = extraFancyStart;
-				let nextLocation = location;
 				let level = (slice * per * 2);
-				let nextSlice = slice+1;
-				let nextLevel = (nextSlice * per * 2);
 				const k = (rings+intersectionAreaRings) * (slices + 1);
 				const underOne = k + j;
-				const underTwo = underOne + 1;
-
 				const midFirst = location + level;
 				if (isBeamValley) {
 					faceIndices.push(underOne);
@@ -379,8 +358,6 @@ function lengthOfEdge(firstPoint, tipPoint) {
 	return Math.hypot(firstPoint[0]-tipPoint[0], firstPoint[1]-tipPoint[1]);
 }
 
-const flames = true;
-
 const sunVerticesSelector = createSelector(
 	[ringsSelector,slicesSelector,sliceDeltaSelector,sunRadiusSelector,sunHeightSelector,ringDeltaTopSelector,beamFullTopThetaSelector,beamThetaArraySelector,fullBeamCountSelector,arcRadiansSelector,radiusSelector,sphereFractionSelector,baseHeightSelector,faceIndicesSelector,x0Selector,y0Selector,x1Selector,y1Selector,useFlameBezierSelector],
 	(rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount,arcRadians,radius,sphereFraction,baseHeight,faceIndices,x0,y0,x1,y1,useFlameBezier) => {
@@ -400,7 +377,6 @@ const sunVerticesSelector = createSelector(
 			}
 		}
 
-		const beamTopTheta = beamFullTopTheta;
 		const intersectionAreaRings = beamThetaArray.length-1;
 		for (let i=0; i<intersectionAreaRings+1; i++) { // latitude // stacked layers // the intersection area
 			const theta = quarter - beamThetaArray[i];
@@ -434,13 +410,11 @@ const sunVerticesSelector = createSelector(
 		const per = slices / divisions;
 		const anchor = (rings+intersectionAreaRings+1) * (slices+1);
 		const tips = anchor + 1;
-		const count = tips + fullBeamCount + 1;
-		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
-		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
-		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
-		const firstBeamEndsStart = lastEdgeStart;
-		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
-		const pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + intersectionAreaRings * per;
+// 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
+// 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
+// 		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
+// 		const firstBeamEndsStart = lastEdgeStart;
+// 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
 
 // BEAM SEGMENT VERTICES
 		if (extraFancy) for (let j=0; j<=slices; j++) { // new beam segment vertices
@@ -458,13 +432,11 @@ const sunVerticesSelector = createSelector(
 				const firstRoot = (rings + i) * (slices + 1) + j;
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = tipNumber*per*2;
-				const beamRoot = (rings + i) * (slices + 1) + beamSlice;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<per+1; a++) { // top side
 					const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / per);
 					const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / per);
 					const regular = [x,y];
-					const debug = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / per);
 					const isEndPiece = beamSlice === j || j === slices;
 					const value = (isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,per,topEdgeLength,1);
 					vertexData.push([
@@ -507,7 +479,6 @@ const sunVerticesSelector = createSelector(
 				const firstRoot = (rings + i) * (slices + 1) + slice;
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = tipNumber*per*2;
-				const beamRoot = (rings + i) * (slices + 1) + beamSlice;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<per+1; a++) { // top side
 					const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / per;
@@ -535,7 +506,7 @@ const sunVerticesSelector = createSelector(
 						onePoint[2] + (tipPoint[2] - onePoint[2]) * a / per + pedestal
 					]);
 				}
-			} 
+			}
 		}
 
 		if (extraFancy && sphereFraction !== "whole") for (let i=1; i<intersectionAreaRings+1; i++) { // beam ends
@@ -575,9 +546,7 @@ const sunVerticesSelector = createSelector(
 				]);
 			}
 			const theta = Math.PI / 2.0;
-			const cosTheta = Math.cos(theta);
 			const sinTheta = Math.sin(theta);
-			const height = -baseHeight
 			for (let j=0; j<=slices; j++) { // pedestal sun underside
 				const phi = j * sliceDelta;
 				const cosPhi = Math.cos(phi);
@@ -599,13 +568,11 @@ const sunIndicesSelector = createSelector(
 	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, faceIndicesSelector, baseHeightSelector,flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector],
 	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, faceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast) => {
 		const indexData = [];
-		const faceVertices = [];
 		const divisions = fullBeamCount * 2;
 		const per = slices / divisions;
 		const intersectionAreaRings = beamThetaArray.length-1;
 		const anchor = (rings+intersectionAreaRings+1) * (slices+1);
 		const tips = anchor + 1;
-		const count = tips + fullBeamCount + 1;
 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
 		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
@@ -640,195 +607,194 @@ const sunIndicesSelector = createSelector(
 		}
 
 
-	if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
+		if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
+			const larger = j % (per * 2);
+			const smaller = j % per;
+			let i = smaller;
+			const division = Math.floor( j / per );
+			const tipNumber = Math.ceil( division / 2 ) ;
+			const tipIndex = tips + tipNumber;
+			//const isLastEdge = !((j + 1 + per) % (per * 2));
+			const notLastEdge = (j + 1 + per) % (per * 2);
+			//const notBeamValley = (j + per) % (per * 2);
+			//const isBeamValley = !((j + per) % (per * 2));
+			if (larger < per) {
+				const firstRoot = (rings + i) * (slices + 1) + j;
+				const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
+				const additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
+				const slice = j + additional;
+				let location = extraFancyStart;
+				let nextLocation = location;
+				let level = (slice * per * 2);
+				let nextSlice = slice+1;
+				let nextLevel = (nextSlice * per * 2);
+				let k = (rings+intersectionAreaRings) * (slices + 1);
+				if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
+				const underOne = k + j;
+				const underTwo = underOne + 1;
+				if (!extraFancy) {
+					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
+					indexData.push([underOne, underTwo, tipIndex]); // beam underside
+				} else {
+					let a = 0;
+					const midFirst = location + level + a;
+					const midSecond = nextLocation + nextLevel + a;
+					if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
+						if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
+						if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond+per]);
+						if (!debugRight && !debugBottom) indexData.push([underOne, midSecond+per, midFirst+per]);
+						for (a=1; a<per; a++) {
+							const previousFirst = location + level + (a - 1);
+							const previousSecond = nextLocation + nextLevel + (a - 1);
+							const nextFirst = location + level + a;
+							const nextSecond = nextLocation + nextLevel + a;
+							if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
+							//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+							if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+							if (!debugLeft && !debugBottom) indexData.push([previousFirst+per, previousSecond+per, nextSecond+per]);
+							//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+							if (!debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+						}
+					}
+				}
+			}
 
-		const larger = j % (per * 2);
-		const smaller = j % per;
-		let i = smaller;
-		const division = Math.floor( j / per );
-		const tipNumber = Math.ceil( division / 2 ) ;
-		const tipIndex = tips + tipNumber;
-		const isLastEdge = !((j + 1 + per) % (per * 2));
-		const notLastEdge = (j + 1 + per) % (per * 2);
-		const notBeamValley = (j + per) % (per * 2);
-		const isBeamValley = !((j + per) % (per * 2));
-		if (larger < per) {
-			const firstRoot = (rings + i) * (slices + 1) + j;
-			const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
-			const additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
-			const slice = j + additional;
-			let location = extraFancyStart;
-			let nextLocation = location;
-			let level = (slice * per * 2);
-			let nextSlice = slice+1;
-			let nextLevel = (nextSlice * per * 2);
-			let k = (rings+intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
-			const underOne = k + j;
-			const underTwo = underOne + 1;
-			if (!extraFancy) {
-				indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-				indexData.push([underOne, underTwo, tipIndex]); // beam underside
-			} else {
-				let a = 0;
-				const midFirst = location + level + a;
-				const midSecond = nextLocation + nextLevel + a;
-				if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
-					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
-					if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
-					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond+per]);
-					if (!debugRight && !debugBottom) indexData.push([underOne, midSecond+per, midFirst+per]);
-					for (a=1; a<per; a++) {
-						const previousFirst = location + level + (a - 1);
-						const previousSecond = nextLocation + nextLevel + (a - 1);
-						const nextFirst = location + level + a;
-						const nextSecond = nextLocation + nextLevel + a;
-						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
-						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
-						if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([previousFirst+per, previousSecond+per, nextSecond+per]);
-						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+			if (larger >= per) {
+				if (notLastEdge) i = per - i;
+				let firstRoot = (rings + i) * (slices + 1) + j;
+				let secondRoot = firstRoot - slices;
+				const slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
+				let location = extraFancyStart;
+				let nextLocation = location;
+				let level = (slice * per * 2);
+				let nextSlice = slice+1;
+				let nextLevel = (nextSlice * per * 2);
+				let k = (rings+intersectionAreaRings) * (slices + 1);
+				if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
+				const underOne = k + j;
+				const underTwo = underOne + 1;
+				if (!extraFancy) {
+					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
+					indexData.push([underOne, underTwo, tipIndex]); // beam underside
+				} else {
+					let a = 0;
+					const midFirst = location + level + a;
+					const midSecond = nextLocation + nextLevel + a;
+					if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
+						if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
+						if (!debugRight && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
+						for (a=1; a<per; a++) {
+							const previousFirst = location + level + (a - 1);
+							const previousSecond = nextLocation + nextLevel + (a - 1);
+							const nextFirst = location + level + a;
+							const nextSecond = nextLocation + nextLevel + a;
+							if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
+							//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
+							if (!debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
+							if (!debugLeft && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
+							//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+							if (!debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+						}
 					}
 				}
 			}
 		}
 
-		if (larger >= per) {
-			if (notLastEdge) i = per - i;
-			let firstRoot = (rings + i) * (slices + 1) + j;
-			let secondRoot = firstRoot - slices;
-			const slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
-			let location = extraFancyStart;
-			let nextLocation = location;
-			let level = (slice * per * 2);
-			let nextSlice = slice+1;
-			let nextLevel = (nextSlice * per * 2);
-			let k = (rings+intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
-			const underOne = k + j;
-			const underTwo = underOne + 1;
+		if (!debugFirst && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
+			const one = (rings + i) * (slices + 1);
+			const two = (rings + i + 1) * (slices + 1);
+			const firstTip = tips;
 			if (!extraFancy) {
-				indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-				indexData.push([underOne, underTwo, tipIndex]); // beam underside
+				indexData.push([one, two, firstTip]); // beam end
 			} else {
+				let location = extraFancyStart;
+				if (i) location = firstBeamEndsStart + (i-1)*per;
+				let nextLocation = firstBeamEndsStart + i*per;
+				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + per; // last line is the underside
 				let a = 0;
-				const midFirst = location + level + a;
-				const midSecond = nextLocation + nextLevel + a;
-				if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
-					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
-					if (!debugRight && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
-					if (!debugRight && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
-					for (a=1; a<per; a++) {
-						const previousFirst = location + level + (a - 1);
-						const previousSecond = nextLocation + nextLevel + (a - 1);
-						const nextFirst = location + level + a;
-						const nextSecond = nextLocation + nextLevel + a;
-						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
-						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
-						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+				const midFirst = location + a;
+				const midSecond = nextLocation + a;
+				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+					indexData.push([one, two, midFirst]);
+					indexData.push([two, midSecond, midFirst]);
+				}
+				for (a=1; a<per; a++) {
+					const previousFirst = location + (a - 1);
+					const previousSecond = nextLocation + (a - 1);
+					const nextFirst = location + a;
+					const nextSecond = nextLocation + a;
+					if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+						indexData.push([previousSecond, nextFirst, previousFirst]);
+						indexData.push([previousSecond, nextSecond, nextFirst]);
 					}
 				}
 			}
 		}
-	}
 
-	if (!debugFirst && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
-		const one = (rings + i) * (slices + 1);
-		const two = (rings + i + 1) * (slices + 1);
-		const firstTip = tips;
-		if (!extraFancy) {
-			indexData.push([one, two, firstTip]); // beam end
-		} else {
-			let location = extraFancyStart;
-			if (i) location = firstBeamEndsStart + (i-1)*per;
-			let nextLocation = firstBeamEndsStart + i*per;
-			if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + per; // last line is the underside
-			let a = 0;
-			const midFirst = location + a;
-			const midSecond = nextLocation + a;
-			if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-				indexData.push([one, two, midFirst]);
-				indexData.push([two, midSecond, midFirst]);
-			}
-			for (a=1; a<per; a++) {
-				const previousFirst = location + (a - 1);
-				const previousSecond = nextLocation + (a - 1);
-				const nextFirst = location + a;
-				const nextSecond = nextLocation + a;
+		if (!debugLast && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
+			const three = (rings + i) * (slices + 1) + slices;
+			const four = (rings + i + 1) * (slices + 1) + slices;
+			const lastTip = tips + fullBeamCount;
+			if (!extraFancy) {
+				indexData.push([four, three, lastTip]); // beam end
+			} else {
+				let location = extraFancyStart + (slices + lastEdgeCount) * per * 2;
+				if (i) location = lastBeamEndsStart + (i-1)*per;
+				let nextLocation = lastBeamEndsStart + i*per;
+				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
+				let a = 0;
+				const midFirst = location + a;
+				const midSecond = nextLocation + a;
 				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-					indexData.push([previousSecond, nextFirst, previousFirst]);
-					indexData.push([previousSecond, nextSecond, nextFirst]);
+					indexData.push([four, three, midFirst]);
+					indexData.push([midSecond, four, midFirst]);
+				}
+				for (a=1; a<per; a++) {
+					const previousFirst = location + (a - 1);
+					const previousSecond = nextLocation + (a - 1);
+					const nextFirst = location + a;
+					const nextSecond = nextLocation + a;
+					if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+						indexData.push([nextFirst, previousSecond, previousFirst]);
+						indexData.push([nextSecond, previousSecond, nextFirst]);
+					}
 				}
 			}
 		}
-	}
 
-	if (!debugLast && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
-		const three = (rings + i) * (slices + 1) + slices;
-		const four = (rings + i + 1) * (slices + 1) + slices;
-		const lastTip = tips + fullBeamCount;
-		if (!extraFancy) {
-			indexData.push([four, three, lastTip]); // beam end
-		} else {
-			let location = extraFancyStart + (slices + lastEdgeCount) * per * 2;
-			if (i) location = lastBeamEndsStart + (i-1)*per;
-			let nextLocation = lastBeamEndsStart + i*per;
-			if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
-			let a = 0;
-			const midFirst = location + a;
-			const midSecond = nextLocation + a;
-			if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-				indexData.push([four, three, midFirst]);
-				indexData.push([midSecond, four, midFirst]);
-			}
-			for (a=1; a<per; a++) {
-				const previousFirst = location + (a - 1);
-				const previousSecond = nextLocation + (a - 1);
-				const nextFirst = location + a;
-				const nextSecond = nextLocation + a;
-				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-					indexData.push([nextFirst, previousSecond, previousFirst]);
-					indexData.push([nextSecond, previousSecond, nextFirst]);
-				}
+		if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // sun ends
+			const first = i * (slices + 1);
+			const second = first + slices + 1;
+			indexData.push([anchor, second, first]);
+		}
+		if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // other slice
+			const j = slices;
+			const first = i * (slices + 1) + j;
+			const second = first + slices + 1;
+			indexData.push([anchor, first, second]);
+		}
+		for (let j=0; j<slices; j++) { // original sun bottom, without beams
+			let i = (rings+intersectionAreaRings) * (slices + 1);
+			if (fakeExtrude && baseHeight > 0) i = pedestalStart + faceIndices.length;
+			const first = i + j;
+			const second = first + 1;
+			if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
+			else indexData.push([anchor, second, first]);
+		}
+		if (fakeExtrude && baseHeight > 0) {
+			const length = faceIndices.length;
+			for (let i=0; i<length-1; i++) {
+				const topVertex = faceIndices[i];
+				const bottomVertex = pedestalStart + i;
+				const nextTopVertex = faceIndices[i+1];
+				const nextBottomVertex = pedestalStart + i + 1;
+				indexData.push([topVertex, bottomVertex, nextTopVertex]);
+				indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
 			}
 		}
-	}
-
-	if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // sun ends
-		const first = i * (slices + 1);
-		const second = first + slices + 1;
-		indexData.push([anchor, second, first]);
-	}
-	if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // other slice
-		const j = slices;
-		const first = i * (slices + 1) + j;
-		const second = first + slices + 1;
-		indexData.push([anchor, first, second]);
-	}
-	for (let j=0; j<slices; j++) { // original sun bottom, without beams
-		let i = (rings+intersectionAreaRings) * (slices + 1);
-		if (fakeExtrude && baseHeight > 0) i = pedestalStart + faceIndices.length;
-		const first = i + j;
-		const second = first + 1;
-		if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
-		else indexData.push([anchor, second, first]);
-	}
-	if (fakeExtrude && baseHeight > 0) {
-		const length = faceIndices.length;
-		for (let i=0; i<length-1; i++) {
-			const topVertex = faceIndices[i];
-			const bottomVertex = pedestalStart + i;
-			const nextTopVertex = faceIndices[i+1];
-			const nextBottomVertex = pedestalStart + i + 1;
-			indexData.push([topVertex, bottomVertex, nextTopVertex]);
-			indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
-		}
-	}
 
 		//deepFreeze(indexData);
 		return indexData;

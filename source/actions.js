@@ -53,7 +53,7 @@ export function changeWorldRotation(value) {
 		type: CHANGE_WORLD_ROTATION,
 		value,
 		preserve
-	}
+	};
 }
 
 export function changeCameraOrientation(value) {
@@ -61,14 +61,14 @@ export function changeCameraOrientation(value) {
 		type: CHANGE_CAMERA_ORIENTATION,
 		value,
 		preserve
-	}
+	};
 }
 
 export function resetWorldRotationAndCameraOrientation() {
 	return {
 		type: RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION,
 		preserve
-	}
+	};
 }
 
 export function disclosureToggle(nodeId) {
@@ -119,5 +119,5 @@ export function changeSetting(nodeId,value) {
 		value,
 		undoable,
 		coalesce
-	}
+	};
 }

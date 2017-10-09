@@ -1,10 +1,8 @@
-// Tinkercad exports .stl in binary format, which can be converted here: ../../../convertSTL
-// ruby convertSTL.rb ../sunshine-hall/tinkerCubeBinary.stl
-// ruby ../../convertSTL/convertSTL.rb tinkerSphere.stl
+// This file owes its existence to
+// http://www.syedrezaali.com/ycam-grp/
 
 
 //import deepFreeze from "deep-freeze"; // debug
-
 import { h, Component } from "preact";
 //import { bind } from "decko";
 
@@ -37,9 +35,7 @@ const dpr = mobile ? 1 : ( window.devicePixelRatio || 1 );
 const vertexMeshShader = glslify( "./solid.vert" ); // From tutorial, setup solid shaders
 const fragmentMeshShader = glslify( "./solid.frag" ); // From tutorial, setup solid shaders
 
-
 const d2r = Math.PI / 180.0;
-
 
 class Primary extends Component {
 	constructor(props) {
@@ -56,7 +52,7 @@ class Primary extends Component {
 			projectionMatrix: mat4.create(),
 			gTrackball: false,
 			gPan: false
-		}
+		};
 		this.refCallback = this.refCallback.bind(this);
 	}
 

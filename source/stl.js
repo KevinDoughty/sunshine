@@ -1,4 +1,7 @@
-// This file is 
+// This file is a derivative work of
+// https://github.com/YCAMInterlab/lgp.js/blob/master/lgp/stl-serializer.js
+
+// It's probably not necessary anymore, I was getting some NaN values
 
 const guf = require("guf");
 const normalize = guf.normalizeArray;
@@ -34,8 +37,6 @@ function serializeStlPrivate( input, index ) {
 		cells = input.cells;
 	}
 	var positions = input.positions;
-	//var con = input.positions[ 0 ].constructor;
-	//if( con === Array || con === float32Array ) { // eslint-disable-line no-undef
 	if (typeof input.positions[0] === Array || typeof input.positions[0] === Float32Array) { // eslint-disable-line no-undef
 		console.log("serializeStl normalize positions pre:%s;",JSON.stringify(input.positions));
 		positions = normalize( input.positions );
@@ -50,10 +51,8 @@ function serializeStlPrivate( input, index ) {
 		normals = input.normals[0].constructor === Array ? normalize( input.normals ) : input.normals;
 	}
 	else {
-		//console.log("calculate normals positions:%s; cells:%s;",JSON.stringify(positions),JSON.stringify(cells));
 		normals = calculateNormals( positions, cells );
 	}
-	//console.log("NORMALS:%s;",JSON.stringify(normals));
 	var i0, i1, i2;//, a, b, c;
 	var stl = "solid " + name + "\n";
 	for( var i = 0; i < cells.length; i += 3 ) {

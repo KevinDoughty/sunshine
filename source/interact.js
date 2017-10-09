@@ -1,4 +1,4 @@
-import { h, Component, render } from "preact";
+import { h, Component } from "preact";
 //import { bind } from "decko";
 
 import { connect } from "preact-redux";
@@ -7,7 +7,6 @@ import * as actions from "./actions.js";
 import Primary from "./primary.js";
 
 import { startTrackball, rollToTrackball, addToRotationTrackball } from "./trackball.js";
-const keyPressed = require("key-pressed");
 
 class Interact extends Component {
 	constructor(props) {
@@ -15,7 +14,7 @@ class Interact extends Component {
 		this.element = null;
 		this.refCallback = this.refCallback.bind(this);
 		this.keyPress = this.keyPress.bind(this);
-		this.keyDown = this.keyDown.bind(this);
+// 		this.keyDown = this.keyDown.bind(this);
 		this.mouseDown = this.mouseDown.bind(this);
 		this.mouseDrag = this.mouseDrag.bind(this);
 		this.mouseUp = this.mouseUp.bind(this);
@@ -26,35 +25,19 @@ class Interact extends Component {
 			gTrackball: false,
 			gPan: false,
 			gDollyPanStartPoint:[0,0],
-			gTrackBallRotation:[0,0,0,0],
+			gTrackBallRotation:[0,0,0,0]
 		};
 	}
 
 
 	componentWillUnmount() {
 		window.removeEventListener( "keypress", this.keyPress);
-		window.removeEventListener( "keydown", this.keyDown);
 		this.element.removeEventListener("mousedown", this.mouseDown);
 		this.element.removeEventListener("wheel", this.scrollWheel);
 	}
 
 	keyPress(e) {
 		if (e.keyCode === 27) this.props.resetWorldRotationAndCameraOrientation();
-	}
-
-	keyDown(event) {
-		if (keyPressed("S")) {
-			lgp.fileWriter("ycam_tutorial.stl", serializeStl( {
-				positions: mesh.positions,
-				cells: mesh.cells
-			}));
-
-		} else if (keyPressed("O")) {
-			lgp.fileWriter("ycam_tutorial.obj", lgp.objSerializer( {
-				positions: mesh.positions,
-				cells: mesh.cells
-			}));
-		}
 	}
 
 	convertWindowToViewCoordinates(x,y) {
@@ -72,15 +55,14 @@ class Interact extends Component {
 		if (e.shiftKey || e.altKey) { // pan
 			const result = {};
 			if (this.state.gTrackball) { // if we are currently tracking, end trackball
-
-				if (gTrackBallRotationA !== 0.0) {
-					console.log("how did this work trackball:",gTrackBallRotation);
-					console.log("how did this work world:",worldRotation);
-					addToRotationTrackball(this.state.gTrackBallRotation.slice(0), this.state.worldRotation.slice(0));
-				}
+// 				if (gTrackBallRotationA !== 0.0) {
+// 					console.log("how did this work trackball:",this.state.gTrackBallRotation);
+// 					console.log("how did this work world:",this.state.worldRotation);
+// 					addToRotationTrackball(this.state.gTrackBallRotation.slice(0), this.state.worldRotation.slice(0));
+// 				}
 				result.gTrackBallRotation = [0,0,0,0];
 			}
-			result.gPan = true; 
+			result.gPan = true;
 			result.gTrackball = false; // no trackball
 
 			this.gDollyPanStartPoint = point;
@@ -126,16 +108,14 @@ class Interact extends Component {
 		const point = this.convertWindowToViewCoordinates(e.clientX,e.clientY);
 		if (state.gTrackball) {
 			const gTrackBallRotation = state.gTrackBallRotation.slice(0);
-			rollToTrackball(point[0],point[1], gTrackBallRotation); 
+			rollToTrackball(point[0],point[1], gTrackBallRotation);
 			const result = {};
 			result.gTrackBallRotation = gTrackBallRotation.slice(0);
 			this.setState(result);
 
 		} else if (state.gPan) {
-			const result = {};
 			const x = point[0];
 			const y = point[1];
-			const state = this.state;
 			const camera = this.props.now.cameraOrientation;
 			const cameraX = camera[0];
 			const cameraY = camera[1];
@@ -153,9 +133,6 @@ class Interact extends Component {
 	}
 
 	scrollWheel(e) {
-		const state = this.state;
-		const result = {};
-		
 		const camera = this.props.now.cameraOrientation;
 		const oldZ = camera[2];
 		let newZ = oldZ - e.deltaY / 3.0;
@@ -169,7 +146,6 @@ class Interact extends Component {
 		if (this.element !== null) return;
 		this.element = element;
 		window.addEventListener( "keypress", this.keyPress);
-		window.addEventListener( "keydown", this.keyDown, false);
 		this.element.addEventListener("mousedown", this.mouseDown, false);
 		this.element.addEventListener("wheel", this.scrollWheel, false);
 	}
@@ -181,7 +157,7 @@ class Interact extends Component {
 			width: this.props.frame.size.width + "px",
 			height: this.props.frame.size.height + "px",
 			position: "absolute"
-		}
+		};
 
 		const now = this.props.now;
 
