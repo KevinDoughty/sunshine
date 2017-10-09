@@ -642,193 +642,193 @@ const sunIndicesSelector = createSelector(
 
 	if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
 
-			const larger = j % (per * 2);
-			const smaller = j % per;
-			let i = smaller;
-			const division = Math.floor( j / per );
-			const tipNumber = Math.ceil( division / 2 ) ;
-			const tipIndex = tips + tipNumber;
-			const isLastEdge = !((j + 1 + per) % (per * 2));
-			const notLastEdge = (j + 1 + per) % (per * 2);
-			const notBeamValley = (j + per) % (per * 2);
-			const isBeamValley = !((j + per) % (per * 2));
-			if (larger < per) {
-				const firstRoot = (rings + i) * (slices + 1) + j;
-				const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
-				const additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
-				const slice = j + additional;
-				let location = extraFancyStart;
-				let nextLocation = location;
-				let level = (slice * per * 2);
-				let nextSlice = slice+1;
-				let nextLevel = (nextSlice * per * 2);
-				let k = (rings+intersectionAreaRings) * (slices + 1);
-				if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
-				const underOne = k + j;
-				const underTwo = underOne + 1;
-				if (!extraFancy) {
-					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-					indexData.push([underOne, underTwo, tipIndex]); // beam underside
-				} else {
-					let a = 0;
-					const midFirst = location + level + a;
-					const midSecond = nextLocation + nextLevel + a;
-					if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
-						if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
-						if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond+per]);
-						if (!debugRight && !debugBottom) indexData.push([underOne, midSecond+per, midFirst+per]);
-						for (a=1; a<per; a++) {
-							const previousFirst = location + level + (a - 1);
-							const previousSecond = nextLocation + nextLevel + (a - 1);
-							const nextFirst = location + level + a;
-							const nextSecond = nextLocation + nextLevel + a;
-							if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
-							//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
-							if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
-							if (!debugLeft && !debugBottom) indexData.push([previousFirst+per, previousSecond+per, nextSecond+per]);
-							//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
-							if (!debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
-						}
-					}
-				}
-			}
-
-			if (larger >= per) {
-				if (notLastEdge) i = per - i;
-				let firstRoot = (rings + i) * (slices + 1) + j;
-				let secondRoot = firstRoot - slices;
-				const slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
-				let location = extraFancyStart;
-				let nextLocation = location;
-				let level = (slice * per * 2);
-				let nextSlice = slice+1;
-				let nextLevel = (nextSlice * per * 2);
-				let k = (rings+intersectionAreaRings) * (slices + 1);
-				if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
-				const underOne = k + j;
-				const underTwo = underOne + 1;
-				if (!extraFancy) {
-					indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
-					indexData.push([underOne, underTwo, tipIndex]); // beam underside
-				} else {
-					let a = 0;
-					const midFirst = location + level + a;
-					const midSecond = nextLocation + nextLevel + a;
-					if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
-						if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
-						if (!debugRight && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
-						for (a=1; a<per; a++) {
-							const previousFirst = location + level + (a - 1);
-							const previousSecond = nextLocation + nextLevel + (a - 1);
-							const nextFirst = location + level + a;
-							const nextSecond = nextLocation + nextLevel + a;
-							if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
-							//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-							if (!debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-							if (!debugLeft && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
-							//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
-							if (!debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
-						}
-					}
-				}
-			}
-		}
-
-		if (!debugFirst && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
-			const one = (rings + i) * (slices + 1);
-			const two = (rings + i + 1) * (slices + 1);
-			const firstTip = tips;
+		const larger = j % (per * 2);
+		const smaller = j % per;
+		let i = smaller;
+		const division = Math.floor( j / per );
+		const tipNumber = Math.ceil( division / 2 ) ;
+		const tipIndex = tips + tipNumber;
+		const isLastEdge = !((j + 1 + per) % (per * 2));
+		const notLastEdge = (j + 1 + per) % (per * 2);
+		const notBeamValley = (j + per) % (per * 2);
+		const isBeamValley = !((j + per) % (per * 2));
+		if (larger < per) {
+			const firstRoot = (rings + i) * (slices + 1) + j;
+			const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
+			const additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
+			const slice = j + additional;
+			let location = extraFancyStart;
+			let nextLocation = location;
+			let level = (slice * per * 2);
+			let nextSlice = slice+1;
+			let nextLevel = (nextSlice * per * 2);
+			let k = (rings+intersectionAreaRings) * (slices + 1);
+			if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
+			const underOne = k + j;
+			const underTwo = underOne + 1;
 			if (!extraFancy) {
-				indexData.push([one, two, firstTip]); // beam end
+				indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
+				indexData.push([underOne, underTwo, tipIndex]); // beam underside
 			} else {
-				let location = extraFancyStart;
-				if (i) location = firstBeamEndsStart + (i-1)*per;
-				let nextLocation = firstBeamEndsStart + i*per;
-				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + per; // last line is the underside
 				let a = 0;
-				const midFirst = location + a;
-				const midSecond = nextLocation + a;
-				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-					indexData.push([one, two, midFirst]);
-					indexData.push([two, midSecond, midFirst]);
-				}
-				for (a=1; a<per; a++) {
-					const previousFirst = location + (a - 1);
-					const previousSecond = nextLocation + (a - 1);
-					const nextFirst = location + a;
-					const nextSecond = nextLocation + a;
-					if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-						indexData.push([previousSecond, nextFirst, previousFirst]);
-						indexData.push([previousSecond, nextSecond, nextFirst]);
+				const midFirst = location + level + a;
+				const midSecond = nextLocation + nextLevel + a;
+				if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
+					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
+					if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond+per]);
+					if (!debugRight && !debugBottom) indexData.push([underOne, midSecond+per, midFirst+per]);
+					for (a=1; a<per; a++) {
+						const previousFirst = location + level + (a - 1);
+						const previousSecond = nextLocation + nextLevel + (a - 1);
+						const nextFirst = location + level + a;
+						const nextSecond = nextLocation + nextLevel + a;
+						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
+						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+						if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([previousFirst+per, previousSecond+per, nextSecond+per]);
+						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
 					}
 				}
 			}
 		}
 
-		if (!debugLast && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
-			const three = (rings + i) * (slices + 1) + slices;
-			const four = (rings + i + 1) * (slices + 1) + slices;
-			const lastTip = tips + fullBeamCount;
+		if (larger >= per) {
+			if (notLastEdge) i = per - i;
+			let firstRoot = (rings + i) * (slices + 1) + j;
+			let secondRoot = firstRoot - slices;
+			const slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
+			let location = extraFancyStart;
+			let nextLocation = location;
+			let level = (slice * per * 2);
+			let nextSlice = slice+1;
+			let nextLevel = (nextSlice * per * 2);
+			let k = (rings+intersectionAreaRings) * (slices + 1);
+			if (fakeExtrude && baseHeight > 0) k = pedestalStart + faceIndices.length;
+			const underOne = k + j;
+			const underTwo = underOne + 1;
 			if (!extraFancy) {
-				indexData.push([four, three, lastTip]); // beam end
+				indexData.push([secondRoot, firstRoot, tipIndex]); // beam top side
+				indexData.push([underOne, underTwo, tipIndex]); // beam underside
 			} else {
-				let location = extraFancyStart + (slices + lastEdgeCount) * per * 2;
-				if (i) location = lastBeamEndsStart + (i-1)*per;
-				let nextLocation = lastBeamEndsStart + i*per;
-				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
 				let a = 0;
-				const midFirst = location + a;
-				const midSecond = nextLocation + a;
-				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-					indexData.push([four, three, midFirst]);
-					indexData.push([midSecond, four, midFirst]);
-				}
-				for (a=1; a<per; a++) {
-					const previousFirst = location + (a - 1);
-					const previousSecond = nextLocation + (a - 1);
-					const nextFirst = location + a;
-					const nextSecond = nextLocation + a;
-					if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
-						indexData.push([nextFirst, previousSecond, previousFirst]);
-						indexData.push([nextSecond, previousSecond, nextFirst]);
+				const midFirst = location + level + a;
+				const midSecond = nextLocation + nextLevel + a;
+				if ((!debugEven || j % 2 !== 0) && (!debugOdd || j % 2 !== 1)) {
+					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
+					if (!debugRight && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midFirst+per]);
+					if (!debugRight && !debugBottom) indexData.push([underTwo, midSecond+per, midFirst+per]);
+					for (a=1; a<per; a++) {
+						const previousFirst = location + level + (a - 1);
+						const previousSecond = nextLocation + nextLevel + (a - 1);
+						const nextFirst = location + level + a;
+						const nextSecond = nextLocation + nextLevel + a;
+						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
+						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
+						if (!debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([previousSecond+per, nextFirst+per, previousFirst+per]);
+						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
 					}
 				}
 			}
 		}
+	}
 
-		if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // sun ends
-			const first = i * (slices + 1);
-			const second = first + slices + 1;
-			indexData.push([anchor, second, first]);
-		}
-		if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // other slice
-			const j = slices;
-			const first = i * (slices + 1) + j;
-			const second = first + slices + 1;
-			indexData.push([anchor, first, second]);
-		}
-		for (let j=0; j<slices; j++) { // original sun bottom, without beams
-			let i = (rings+intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) i = pedestalStart + faceIndices.length;
-			const first = i + j;
-			const second = first + 1;
-			if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
-			else indexData.push([anchor, second, first]);
-		}
-		if (fakeExtrude && baseHeight > 0) {
-			const length = faceIndices.length;
-			for (let i=0; i<length-1; i++) {
-				const topVertex = faceIndices[i];
-				const bottomVertex = pedestalStart + i;
-				const nextTopVertex = faceIndices[i+1];
-				const nextBottomVertex = pedestalStart + i + 1;
-				indexData.push([topVertex, bottomVertex, nextTopVertex]);
-				indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
+	if (!debugFirst && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
+		const one = (rings + i) * (slices + 1);
+		const two = (rings + i + 1) * (slices + 1);
+		const firstTip = tips;
+		if (!extraFancy) {
+			indexData.push([one, two, firstTip]); // beam end
+		} else {
+			let location = extraFancyStart;
+			if (i) location = firstBeamEndsStart + (i-1)*per;
+			let nextLocation = firstBeamEndsStart + i*per;
+			if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + per; // last line is the underside
+			let a = 0;
+			const midFirst = location + a;
+			const midSecond = nextLocation + a;
+			if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+				indexData.push([one, two, midFirst]);
+				indexData.push([two, midSecond, midFirst]);
+			}
+			for (a=1; a<per; a++) {
+				const previousFirst = location + (a - 1);
+				const previousSecond = nextLocation + (a - 1);
+				const nextFirst = location + a;
+				const nextSecond = nextLocation + a;
+				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+					indexData.push([previousSecond, nextFirst, previousFirst]);
+					indexData.push([previousSecond, nextSecond, nextFirst]);
+				}
 			}
 		}
+	}
+
+	if (!debugLast && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
+		const three = (rings + i) * (slices + 1) + slices;
+		const four = (rings + i + 1) * (slices + 1) + slices;
+		const lastTip = tips + fullBeamCount;
+		if (!extraFancy) {
+			indexData.push([four, three, lastTip]); // beam end
+		} else {
+			let location = extraFancyStart + (slices + lastEdgeCount) * per * 2;
+			if (i) location = lastBeamEndsStart + (i-1)*per;
+			let nextLocation = lastBeamEndsStart + i*per;
+			if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
+			let a = 0;
+			const midFirst = location + a;
+			const midSecond = nextLocation + a;
+			if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+				indexData.push([four, three, midFirst]);
+				indexData.push([midSecond, four, midFirst]);
+			}
+			for (a=1; a<per; a++) {
+				const previousFirst = location + (a - 1);
+				const previousSecond = nextLocation + (a - 1);
+				const nextFirst = location + a;
+				const nextSecond = nextLocation + a;
+				if ((!debugEven || a % 2 !== 0) && (!debugOdd || a % 2 !== 1)) {
+					indexData.push([nextFirst, previousSecond, previousFirst]);
+					indexData.push([nextSecond, previousSecond, nextFirst]);
+				}
+			}
+		}
+	}
+
+	if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // sun ends
+		const first = i * (slices + 1);
+		const second = first + slices + 1;
+		indexData.push([anchor, second, first]);
+	}
+	if (sphereFraction !== "whole") for (let i=0; i<rings+intersectionAreaRings; i++) { // other slice
+		const j = slices;
+		const first = i * (slices + 1) + j;
+		const second = first + slices + 1;
+		indexData.push([anchor, first, second]);
+	}
+	for (let j=0; j<slices; j++) { // original sun bottom, without beams
+		let i = (rings+intersectionAreaRings) * (slices + 1);
+		if (fakeExtrude && baseHeight > 0) i = pedestalStart + faceIndices.length;
+		const first = i + j;
+		const second = first + 1;
+		if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
+		else indexData.push([anchor, second, first]);
+	}
+	if (fakeExtrude && baseHeight > 0) {
+		const length = faceIndices.length;
+		for (let i=0; i<length-1; i++) {
+			const topVertex = faceIndices[i];
+			const bottomVertex = pedestalStart + i;
+			const nextTopVertex = faceIndices[i+1];
+			const nextBottomVertex = pedestalStart + i + 1;
+			indexData.push([topVertex, bottomVertex, nextTopVertex]);
+			indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
+		}
+	}
 
 		//deepFreeze(indexData);
 		return indexData;

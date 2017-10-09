@@ -107,8 +107,8 @@ export function rollToTrackball(x,y, rot) { // rot is output rotation angle
 	
 	// Normalize the rotation axis.
 	if (lr) lr = 1 / lr;
-	rot[1] *= lr; 
-	rot[2] *= lr; 
+	rot[1] *= lr;
+	rot[2] *= lr;
 	rot[3] *= lr;
 	
 	//console.log("*** rollToTrackball result:%s;",JSON.stringify(rot));
@@ -124,8 +124,8 @@ function rotation2Quat(A, q) {
 	
 	const ang2 = A[0] * kDeg2Rad * 0.5;  // The half angle // Convert from degrees ot radians, get the half-angle.
 	const sinAng2 = Math.sin(ang2); // sin(half-angle)
-	q[0] = A[1] * sinAng2; 
-	q[1] = A[2] * sinAng2; 
+	q[0] = A[1] * sinAng2;
+	q[1] = A[2] * sinAng2;
 	q[2] = A[3] * sinAng2;
 	q[3] = Math.cos(ang2);
 }

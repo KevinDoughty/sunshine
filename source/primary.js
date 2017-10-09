@@ -55,7 +55,7 @@ class Primary extends Component {
 			rotationMatrix: mat4.create(),
 			projectionMatrix: mat4.create(),
 			gTrackball: false,
-			gPan: false,
+			gPan: false
 		}
 		this.refCallback = this.refCallback.bind(this);
 	}
@@ -118,12 +118,12 @@ class Primary extends Component {
 		
 		const canvas = this.canvas;
 		const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-		const { 
+		const {
 			modelMatrix,
 			projectionMatrix
 		} = this.state;
 		const {
-			gTrackBallRotation,
+			gTrackBallRotation
 		} = this.props;
 		
 		const worldRotation = this.props.now.worldRotation;
@@ -191,7 +191,9 @@ class Primary extends Component {
 	}
 
 	render(props,state) {
-		return <canvas ref={this.refCallback} />
+		return (
+			<canvas ref={this.refCallback} />
+		);
 	}
 }
 

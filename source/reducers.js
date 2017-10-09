@@ -6,12 +6,11 @@ import deepFreeze from "deep-freeze";
 
 function processPresets(values) {
 	const topLevelIds = [];
-	let index = 0;
 	const result = {
 		0: {
 			childIds:topLevelIds
 		}
-	}
+	};
 	values.forEach( item => {
 		topLevelIds.push(item.id);
 		processPreset(item,result);
@@ -19,9 +18,9 @@ function processPresets(values) {
 	return result;
 }
 function processPreset(value,result) {
+	const key = value.id;
+	const childIds = [];
 	if (value.type === "group") {
-		var key = value.id;
-		var childIds = [];
 		value.default.forEach( item => {
 			childIds.push(item.id);
 			processPreset(item,result);
@@ -32,11 +31,8 @@ function processPreset(value,result) {
 			type: value.type,
 			name: value.displayName,
 			childIds:childIds
-		}
+		};
 	} else if (value.type === "bezier") {
-		var key = value.id;
-		var childIds = [];
-		const childNodes = [];
 		value.default.forEach( item => {
 			childIds.push(item.id);
 			processPreset(item,result);
@@ -48,7 +44,7 @@ function processPreset(value,result) {
 			type: value.type,
 			name: value.displayName,
 			choiceIds:childIds
-		}
+		};
 		result[key] = {
 			id: key,
 			value: value.displayName,
@@ -56,11 +52,11 @@ function processPreset(value,result) {
 			name: value.displayName,
 			childIds:[controlKey],
 			choiceIds:childIds
-		}
+		};
 	} else { // not a group
-		result[value.id] = Object.assign({
+		result[key] = Object.assign({
 			name: value.displayName,
-			value: value.default,
+			value: value.default
 		}, value);
 	}
 }
@@ -69,8 +65,8 @@ const initialTreeDict = processPresets(presets);
 
 function idSorter(flattenedIds) {
 	return (a,b) => {
-		var A = flattenedIds.indexOf(a);
-		var B = flattenedIds.indexOf(b);
+		const A = flattenedIds.indexOf(a);
+		const B = flattenedIds.indexOf(b);
 		return A - B;
 	};
 }
@@ -84,8 +80,7 @@ export function main(state={}, initialAction) {
 		// preservables:
 		now: now(state.now, modifiedAction),
 		// custom:
-		draggingDivider: draggingDivider(state.draggingDivider, modifiedAction),
-
+		draggingDivider: draggingDivider(state.draggingDivider, modifiedAction)
 	};
 	deepFreeze(result);
 	return result;
