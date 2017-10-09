@@ -1125,8 +1125,8 @@ exports.vertexNormals = __webpack_require__(136);
 exports.calculateNormal = __webpack_require__(54);
 
 //HELPFUL UTILS
-exports.cross = __webpack_require__(29);
-exports.normalize = __webpack_require__(30);
+exports.cross = __webpack_require__(30);
+exports.normalize = __webpack_require__(31);
 
 
 /***/ }),
@@ -1353,7 +1353,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "connect", function() { return connect; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "connectAdvanced", function() { return connectAdvanced; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_preact__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux__ = __webpack_require__(35);
 
 
 
@@ -3004,7 +3004,7 @@ var Face = __webpack_require__(5);
 var Edge = __webpack_require__(4);
 var HalfEdge = __webpack_require__(6);
 var HalfEdgePrev = __webpack_require__(15);
-var VertexHalfEdges = __webpack_require__(21);
+var VertexHalfEdges = __webpack_require__(22);
 
 module.exports = function( mesh, startVertexIndex, endVertexIndex ) {
   // console.log( 'faceIndex:', faceIndex );
@@ -3185,6 +3185,83 @@ module.exports = g;
 /* 17 */
 /***/ (function(module, exports) {
 
+var cache = {
+    '1': bezier1
+  , '2': bezier2
+  , '3': bezier3
+  , '4': bezier4
+}
+
+module.exports = neat
+module.exports.prepare = prepare
+
+function neat(arr, t) {
+  return prepare(arr.length)(arr, t)
+}
+
+function prepare(pieces) {
+  pieces = +pieces|0
+  if (!pieces) throw new Error('Cannot create a interpolator with no elements')
+  if (cache[pieces]) return cache[pieces]
+
+  var fn = ['var ut = 1 - t', '']
+
+  var n = pieces
+  while (n--) {
+    for (var j = 0; j < n; j += 1) {
+      if (n+1 === pieces) {
+        fn.push('var p'+j+' = arr['+j+'] * ut + arr['+(j+1)+'] * t')
+      } else
+      if (n > 1) {
+        fn.push('p'+j+' = p'+j+' * ut + p'+(j+1)+' * t')
+      } else {
+        fn.push('return p'+j+' * ut + p'+(j+1)+' * t')
+      }
+    }
+    if (n > 1) fn.push('')
+  }
+
+  fn = [
+    'return function bezier'+pieces+'(arr, t) {'
+    , fn.map(function(s) { return '  ' + s }).join('\n')
+    , '}'
+  ].join('\n')
+
+  return Function(fn)()
+}
+
+//
+// Including the first four degrees
+// manually - there's a slight performance penalty
+// to generated code. It's outweighed by
+// the gains of the optimisations, but always
+// helps to cover the most common cases :)
+//
+
+function bezier1(arr) {
+  return arr[0]
+}
+
+function bezier2(arr, t) {
+  return arr[0] + (arr[1] - arr[0]) * t
+}
+
+function bezier3(arr, t) {
+  var ut = 1 - t
+  return (arr[0] * ut + arr[1] * t) * ut + (arr[1] * ut + arr[2] * t) * t
+}
+
+function bezier4(arr, t) {
+  var ut = 1 - t
+  var a1 = arr[1] * ut + arr[2] * t
+  return ((arr[0] * ut + arr[1] * t) * ut + a1 * t) * ut + (a1 * ut + (arr[2] * ut + arr[3] * t) * t) * t
+}
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports) {
+
 module.exports = function( a, b, c ) {
   return ( b[ 0 ] - a[ 0 ] ) * ( c[ 1 ] - a[ 1 ] ) -
          ( c[ 0 ] - a[ 0 ] ) * ( b[ 1 ] - a[ 1 ] );
@@ -3192,11 +3269,11 @@ module.exports = function( a, b, c ) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var greaterThanZero = __webpack_require__(24);
-var area2 = __webpack_require__(17);
+var greaterThanZero = __webpack_require__(25);
+var area2 = __webpack_require__(18);
 
 module.exports = function( a, b, c ) {
   return greaterThanZero( area2( a, b, c ) );
@@ -3204,7 +3281,7 @@ module.exports = function( a, b, c ) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 function GLError (rawError, shortMessage, longMessage) {
@@ -3223,7 +3300,7 @@ module.exports = GLError
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Face = __webpack_require__(5);
@@ -3332,7 +3409,7 @@ module.exports = function( mesh, edgeIndex, position ) {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 module.exports = function( vertex ) {
@@ -3353,7 +3430,7 @@ module.exports = function( vertex ) {
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports) {
 
 module.exports = function( vertex ) {
@@ -3374,7 +3451,7 @@ module.exports = function( vertex ) {
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3476,7 +3553,7 @@ function populateExposed(destination, normalizedTreeDict, nodeId, flattenedIds, 
 }
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports) {
 
 module.exports = function( a ) {
@@ -3485,11 +3562,11 @@ module.exports = function( a ) {
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isColinear = __webpack_require__(26);
-var isLeft = __webpack_require__(18);
+var isColinear = __webpack_require__(27);
+var isLeft = __webpack_require__(19);
 
 module.exports = function( a, b, c, d ) {
   if( isColinear( a, b, c ) || isColinear( a, b, d ) || isColinear( c, d, a ) || isColinear( c, d, b ) ) {
@@ -3504,11 +3581,11 @@ module.exports = function( a, b, c, d ) {
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isZero = __webpack_require__(10);
-var area2 = __webpack_require__(17);
+var area2 = __webpack_require__(18);
 
 module.exports = function( a, b, c ) {
   return isZero( area2( a, b, c ) );
@@ -3516,7 +3593,7 @@ module.exports = function( a, b, c ) {
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var isZero = __webpack_require__(10);
@@ -3527,29 +3604,29 @@ module.exports = function( a, b ) {
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //1D Functions
-exports.greaterThanZero       = __webpack_require__(24);
-exports.isEqual               = __webpack_require__(27);
+exports.greaterThanZero       = __webpack_require__(25);
+exports.isEqual               = __webpack_require__(28);
 exports.isZero                = __webpack_require__(10);
 
 //2D Functions
-exports.area2                 = __webpack_require__(17);
+exports.area2                 = __webpack_require__(18);
 exports.convexHull2           = __webpack_require__(97);
 exports.cross2                = __webpack_require__(38);
 exports.expandPolygon2        = __webpack_require__(98);
 exports.inCone2               = __webpack_require__(39);
 exports.intersection2         = __webpack_require__(40);
 exports.intersects2           = __webpack_require__(99);
-exports.intersectsProper2     = __webpack_require__(25);
+exports.intersectsProper2     = __webpack_require__(26);
 exports.isBetween2            = __webpack_require__(41);
-exports.isColinear2           = __webpack_require__(26);
+exports.isColinear2           = __webpack_require__(27);
 exports.isDiagonal2           = __webpack_require__(42);
 exports.isDiagonalie2         = __webpack_require__(43);
 exports.isEqual2              = __webpack_require__(44);
-exports.isLeft2               = __webpack_require__(18);
+exports.isLeft2               = __webpack_require__(19);
 exports.isLeftOn2             = __webpack_require__(45);
 exports.triangulatePolygon2   = __webpack_require__(101);
 
@@ -3558,7 +3635,7 @@ exports.isColinear3           = __webpack_require__(100);
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports) {
 
 module.exports = function( out, a, b, c ) {
@@ -3572,7 +3649,7 @@ module.exports = function( out, a, b, c ) {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports) {
 
 module.exports = function( out, v ) {
@@ -3585,7 +3662,7 @@ module.exports = function( out, v ) {
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Edge = __webpack_require__(4);
@@ -3657,7 +3734,7 @@ module.exports = function( mesh, vertices, face ) {
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var vec3 = __webpack_require__(0).vec3;
@@ -3675,7 +3752,7 @@ module.exports = function( mesh ) {
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -3865,7 +3942,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3899,10 +3976,10 @@ if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' 
 }
 
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(33)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(34)))
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3915,7 +3992,7 @@ exports.meshSelector = exports.settingsSelector = undefined;
 
 var _reselect = __webpack_require__(66);
 
-var _selectors = __webpack_require__(23);
+var _selectors = __webpack_require__(24);
 
 // Selectors are really tedious here, especially for simple, non-array values which should just be calculated.
 // Functions for each angle and slice length might be a bit excessive too
@@ -3924,17 +4001,14 @@ var mda = __webpack_require__(162);
 var Mesh = mda.Mesh;
 var move = mda.MoveOperator;
 var vec3 = __webpack_require__(0).vec3;
-var test = mda.MeshIntegrity;
-var createFace = mda.CreateFaceOperator;
+var check = mda.MeshIntegrity;
+//const createFace = mda.CreateFaceOperator;
+var bezier = __webpack_require__(17);
+var cubic = __webpack_require__(17).prepare(4);
 
 var plotFancy = true; // beam sub triangles, both plotFancy and extraFancy have to be true
 var extraFancy = true; // beam sub triangles subdivided into even more sub triangle strips
 var fakeExtrude = true; // TODO: create a proper face with more than just 3 half edges to extrude
-
-var debugA = false;
-var debugB = false;
-var debugTop = false;
-var debugBottom = false;
 
 var half = Math.PI;
 var quarter = half / 2;
@@ -3982,6 +4056,48 @@ var beamTopExtendedSelector = (0, _reselect.createSelector)([settingsSelector], 
 });
 var baseHeightSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.baseHeight * 1;
+});
+var x0Selector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.x0 * 1;
+});
+var y0Selector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.y0 * 1;
+});
+var x1Selector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.x1 * 1;
+});
+var y1Selector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.y1 * 1;
+});
+var useFlameBezierSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.useFlameBezier;
+});
+var flatTopSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.flatTop;
+});
+var debugLeftSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugLeft;
+});
+var debugRightSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugRight;
+});
+var debugTopSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugTop;
+});
+var debugBottomSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugBottom;
+});
+var debugEvenSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugEven;
+});
+var debugOddSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugOdd;
+});
+var debugFirstSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugFirst;
+});
+var debugLastSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugLast;
 });
 
 var sunRadiusSelector = (0, _reselect.createSelector)([radiusSelector, horizonRatioSelector], function (radius, horizonRatio) {
@@ -4251,8 +4367,28 @@ var faceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector,
 	return faceIndices;
 });
 
-var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, faceIndicesSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, faceIndices) {
+function resolveBezier(x0, y0, x1, y1, fromX, fromY, toX, toY, loc, per, length, direction) {
+	if (typeof direction === "undefined") direction === 1;
+	var beamAngle = Math.atan2(toY - fromY, toX - fromX);
+	var eighth = Math.PI / 4;
+	var difference = beamAngle - eighth;
+	var amount = loc / per;
+	var X = [0, direction < 0 ? y0 : x0, direction < 0 ? y1 : x1, 1];
+	var Y = [0, direction < 0 ? x0 : y0, direction < 0 ? x1 : y1, 1];
+	var x = cubic(X, amount);
+	var y = cubic(Y, amount);
+	var bezierAngle = Math.atan2(y, x) + difference;
+	var result = [fromX + Math.cos(bezierAngle) * length * loc / per, fromY + Math.sin(bezierAngle) * length * loc / per];
+	return result;
+}
 
+function lengthOfEdge(firstPoint, tipPoint) {
+	return Math.hypot(firstPoint[0] - tipPoint[0], firstPoint[1] - tipPoint[1]);
+}
+
+var flames = true;
+
+var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, faceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, faceIndices, x0, y0, x1, y1, useFlameBezier) {
 	var vertexData = [];
 	for (var i = 0; i < rings; i++) {
 		// latitude // stacked layers // the cap
@@ -4293,7 +4429,6 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 	// ANCHOR VERTEX
 	vertexData.push([0, 0, 0]); // anchor
 
-
 	// BEAM TIP VERTICES
 	var tipCount = fullBeamCount + 1;
 	for (var _i2 = 0; _i2 < tipCount; _i2++) {
@@ -4324,34 +4459,47 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var smaller = _j2 % per;
 		var _i3 = smaller;
 		var division = Math.floor(_j2 / per);
-
 		var tipNumber = Math.ceil(division / 2);
 		var tipIndex = tips + tipNumber;
 		var tipPoint = vertexData[tipIndex];
-
 		var isLastEdge = !((_j2 + 1 + per) % (per * 2)) && _j2 < slices;
-
 		var pedestal = 0;
 		if (fakeExtrude && baseHeight > 0) pedestal = -baseHeight;
-
 		if (larger < per) {
 			var firstRoot = (rings + _i3) * (slices + 1) + _j2;
 			var firstPoint = vertexData[firstRoot];
+			var beamSlice = tipNumber * per * 2;
+			var beamRoot = (rings + _i3) * (slices + 1) + beamSlice;
+			var topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 			for (var _a4 = 1; _a4 < per + 1; _a4++) {
 				// top side
-				vertexData.push([firstPoint[0] + _a4 * (tipPoint[0] - firstPoint[0]) / per, firstPoint[1] + _a4 * (tipPoint[1] - firstPoint[1]) / per, firstPoint[2] + _a4 * (tipPoint[2] - firstPoint[2]) / per]);
+				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / per;
+				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a4 / per;
+				var regular = [_x3, _y3];
+				var debug = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / per;
+				var isEndPiece = beamSlice === _j2 || _j2 === slices;
+				var value = isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, per, topEdgeLength, 1);
+				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / per]);
 			}
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var oneIndex = k + _j2; // same as sun bottom, except j loop is one greater, thus too long
 			var onePoint = vertexData[oneIndex];
+			var bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
 			for (var _a5 = 1; _a5 < per + 1; _a5++) {
 				// underside
-				vertexData.push([onePoint[0] + _a5 * (tipPoint[0] - onePoint[0]) / per, onePoint[1] + _a5 * (tipPoint[1] - onePoint[1]) / per, onePoint[2] + _a5 * (tipPoint[2] - onePoint[2]) / per + pedestal]);
+				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a5 / per;
+				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a5 / per;
+				var _regular = [_x4, _y4];
+				var _isEndPiece = beamSlice === _j2 || _j2 === slices;
+				var _value = _isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, per, bottomEdgeLength, 1);
+				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / per + pedestal]);
 			}
 		}
 
 		if (larger >= per || isLastEdge) {
+			// isLastEdge to sneak in one more set of vertices
 			var slice = _j2;
+			var direction = -1;
 			if (isLastEdge) {
 				// last edge of the new beam segments
 				slice++;
@@ -4359,47 +4507,57 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 				tipNumber = Math.ceil(division / 2);
 				tipIndex = tips + tipNumber;
 				tipPoint = vertexData[tipIndex];
+				direction = 1;
 			} else {
 				_i3 = per - _i3;
 			}
 			var _firstRoot3 = (rings + _i3) * (slices + 1) + slice;
 			var _firstPoint = vertexData[_firstRoot3];
+			var _beamSlice = tipNumber * per * 2;
+			var _beamRoot = (rings + _i3) * (slices + 1) + _beamSlice;
+			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
 			for (var _a6 = 1; _a6 < per + 1; _a6++) {
 				// top side
-				vertexData.push([_firstPoint[0] + _a6 * (tipPoint[0] - _firstPoint[0]) / per, _firstPoint[1] + _a6 * (tipPoint[1] - _firstPoint[1]) / per, _firstPoint[2] + _a6 * (tipPoint[2] - _firstPoint[2]) / per]);
+				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a6 / per;
+				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a6 / per;
+				var _regular2 = [_x5, _y5];
+				var _value2 = _beamSlice === _j2 && _j2 < slices ? _regular2 : resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, per, _topEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / per]);
 			}
 			var _k2 = (rings + intersectionAreaRings) * (slices + 1);
 			var _oneIndex = _k2 + slice;
 			var _onePoint = vertexData[_oneIndex];
+			var _bottomEdgeLength = lengthOfEdge(_onePoint, tipPoint);
 			for (var _a7 = 1; _a7 < per + 1; _a7++) {
 				// underside
-				vertexData.push([_onePoint[0] + _a7 * (tipPoint[0] - _onePoint[0]) / per, _onePoint[1] + _a7 * (tipPoint[1] - _onePoint[1]) / per, _onePoint[2] + _a7 * (tipPoint[2] - _onePoint[2]) / per + pedestal]);
+				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a7 / per;
+				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a7 / per;
+				var _regular3 = [_x6, _y6];
+				var _value3 = _beamSlice === _j2 && _j2 < slices ? _regular3 : resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, per, _bottomEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / per + pedestal]);
 			}
 		}
 	}
 
 	if (extraFancy && sphereFraction !== "whole") for (var _i4 = 1; _i4 < intersectionAreaRings + 1; _i4++) {
 		// beam ends
-		var one = (rings + _i4) * (slices + 1);
-		var _firstRoot4 = (rings + _i4) * (slices + 1) + 0;
-		var _firstPoint2 = vertexData[_firstRoot4];
-		var firstTip = vertexData[tips];
-		var _z2 = 0;
+		var _firstRoot4 = (rings + _i4) * (slices + 1);
+		var endPoint = vertexData[_firstRoot4];
+		var _tipPoint = vertexData[tips];
 		for (var _a8 = 1; _a8 < per + 1; _a8++) {
 			vertexData.push([// beam end
-			_firstPoint2[0] + _a8 * (firstTip[0] - _firstPoint2[0]) / per, _firstPoint2[1] + _a8 * (firstTip[1] - _firstPoint2[1]) / per, _firstPoint2[2] + _a8 * (firstTip[2] - _firstPoint2[2]) / per + _z2]);
+			endPoint[0] + (_tipPoint[0] - endPoint[0]) * _a8 / per, endPoint[1] + (_tipPoint[1] - endPoint[1]) * _a8 / per, endPoint[2] + (_tipPoint[2] - endPoint[2]) * _a8 / per]);
 		}
 	}
 
 	if (extraFancy && sphereFraction !== "whole") for (var _i5 = 1; _i5 < intersectionAreaRings + 1; _i5++) {
 		// beam ends
-		var lastIndex = (rings + _i5) * (slices + 1) + slices;
-		var lastPoint = vertexData[lastIndex];
-		var lastTip = vertexData[tips + fullBeamCount];
-		var _z3 = 0;
+		var lastRoot = (rings + _i5) * (slices + 1) + slices;
+		var _endPoint = vertexData[lastRoot];
+		var _tipPoint2 = vertexData[tips + fullBeamCount];
 		for (var _a9 = 1; _a9 < per + 1; _a9++) {
 			vertexData.push([// beam end
-			lastPoint[0] + _a9 * (lastTip[0] - lastPoint[0]) / per, lastPoint[1] + _a9 * (lastTip[1] - lastPoint[1]) / per, lastPoint[2] + _a9 * (lastTip[2] - lastPoint[2]) / per + _z3]);
+			_endPoint[0] + (_tipPoint2[0] - _endPoint[0]) * _a9 / per, _endPoint[1] + (_tipPoint2[1] - _endPoint[1]) * _a9 / per, _endPoint[2] + (_tipPoint2[2] - _endPoint[2]) * _a9 / per]);
 		}
 	}
 
@@ -4407,7 +4565,6 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var length = faceIndices.length; // pedestal edges
 		for (var _i6 = 0; _i6 < length; _i6++) {
 			// pedestal outline (copied)
-
 			var vertex = vertexData[faceIndices[_i6]];
 			vertexData.push([vertex[0], vertex[1], -baseHeight]);
 		}
@@ -4420,16 +4577,16 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _phi2 = _j3 * sliceDelta;
 			var _cosPhi2 = Math.cos(_phi2);
 			var _sinPhi2 = Math.sin(_phi2);
-			var _x3 = _cosPhi2 * _sinTheta2;
-			var _y3 = _sinPhi2 * _sinTheta2;
-			vertexData.push([_x3 * sunRadius, _y3 * sunRadius, -baseHeight]);
+			var _x7 = _cosPhi2 * _sinTheta2;
+			var _y7 = _sinPhi2 * _sinTheta2;
+			vertexData.push([_x7 * sunRadius, _y7 * sunRadius, -baseHeight]);
 		}
 	}
 	//deepFreeze(vertexData);
 	return vertexData;
 });
 
-var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, faceIndicesSelector, baseHeightSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, faceIndices, baseHeight) {
+var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, faceIndicesSelector, baseHeightSelector, flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, faceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast) {
 	var indexData = [];
 	var faceVertices = [];
 	var divisions = fullBeamCount * 2;
@@ -4442,8 +4599,8 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	var lastEdgeCount = Math.floor((slices + per) / (per * 2));
 	var lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices + 1) * per * 2;
 	var firstBeamEndsStart = lastEdgeStart;
-	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
-	var pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + intersectionAreaRings * per;
+	var lastBeamEndsStart = firstBeamEndsStart + (intersectionAreaRings - 0) * per;
+	var pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + (intersectionAreaRings - 0) * per;
 	for (var i = 0; i < rings; i++) {
 		// the cap
 		for (var j = 0; j < slices; j++) {
@@ -4482,19 +4639,15 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		var division = Math.floor(_j5 / per);
 		var tipNumber = Math.ceil(division / 2);
 		var tipIndex = tips + tipNumber;
-
 		var isLastEdge = !((_j5 + 1 + per) % (per * 2));
 		var notLastEdge = (_j5 + 1 + per) % (per * 2);
-
 		var notBeamValley = (_j5 + per) % (per * 2);
 		var isBeamValley = !((_j5 + per) % (per * 2));
-
 		if (_larger < per) {
 			var firstRoot = (rings + _i8) * (slices + 1) + _j5;
 			var secondRoot = (rings + _i8 + 1) * (slices + 1) + _j5 + 1;
 			var additional = Math.floor((_j5 + 0 + per) / (per * 2)) + 0;
 			var slice = _j5 + additional;
-
 			var location = extraFancyStart;
 			var nextLocation = location;
 			var level = slice * per * 2;
@@ -4511,19 +4664,23 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 				var a = 0;
 				var midFirst = location + level + a;
 				var midSecond = nextLocation + nextLevel + a;
-				if (!debugA && !debugTop) indexData.push([secondRoot, firstRoot, midFirst]);
-				if (!debugB && !debugTop) indexData.push([secondRoot, midFirst, midSecond]);
-				if (!debugA && !debugBottom) indexData.push([underOne, underTwo, midFirst + per]);
-				if (!debugB && !debugBottom) indexData.push([underTwo, midSecond + per, midFirst + per]);
-				for (a = 1; a < per; a++) {
-					var previousFirst = location + level + (a - 1);
-					var previousSecond = nextLocation + nextLevel + (a - 1);
-					var nextFirst = location + level + a;
-					var nextSecond = nextLocation + nextLevel + a;
-					if (!debugA && !debugTop) indexData.push([previousSecond, previousFirst, nextFirst]);
-					if (!debugB && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-					if (!debugA && !debugBottom) indexData.push([previousSecond + per, nextFirst + per, previousFirst + per]);
-					if (!debugB && !debugBottom) indexData.push([previousSecond + per, nextSecond + per, nextFirst + per]);
+				if ((!debugEven || _j5 % 2 !== 0) && (!debugOdd || _j5 % 2 !== 1)) {
+					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
+					if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond + per]);
+					if (!debugRight && !debugBottom) indexData.push([underOne, midSecond + per, midFirst + per]);
+					for (a = 1; a < per; a++) {
+						var previousFirst = location + level + (a - 1);
+						var previousSecond = nextLocation + nextLevel + (a - 1);
+						var nextFirst = location + level + a;
+						var nextSecond = nextLocation + nextLevel + a;
+						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
+						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+						if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([previousFirst + per, previousSecond + per, nextSecond + per]);
+						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([previousFirst + per, nextSecond + per, nextFirst + per]);
+					}
 				}
 			}
 		}
@@ -4549,25 +4706,29 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 				var _a10 = 0;
 				var _midFirst4 = _location4 + _level2 + _a10;
 				var _midSecond = _nextLocation2 + _nextLevel2 + _a10;
-				if (!debugA && !debugTop) indexData.push([_secondRoot2, _firstRoot5, _midFirst4]);
-				if (!debugB && !debugTop) indexData.push([_secondRoot2, _midFirst4, _midSecond]);
-				if (!debugA && !debugBottom) indexData.push([_underOne2, _underTwo2, _midFirst4 + per]);
-				if (!debugB && !debugBottom) indexData.push([_underTwo2, _midSecond + per, _midFirst4 + per]);
-				for (_a10 = 1; _a10 < per; _a10++) {
-					var _previousFirst = _location4 + _level2 + (_a10 - 1);
-					var _previousSecond = _nextLocation2 + _nextLevel2 + (_a10 - 1);
-					var _nextFirst4 = _location4 + _level2 + _a10;
-					var _nextSecond = _nextLocation2 + _nextLevel2 + _a10;
-					if (!debugA && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst4]);
-					if (!debugB && !debugTop) indexData.push([_previousSecond, _nextFirst4, _nextSecond]);
-					if (!debugA && !debugBottom) indexData.push([_previousSecond + per, _nextFirst4 + per, _previousFirst + per]);
-					if (!debugB && !debugBottom) indexData.push([_previousSecond + per, _nextSecond + per, _nextFirst4 + per]);
+				if ((!debugEven || _j5 % 2 !== 0) && (!debugOdd || _j5 % 2 !== 1)) {
+					if (!debugLeft && !debugTop) indexData.push([_secondRoot2, _firstRoot5, _midFirst4]);
+					if (!debugRight && !debugTop) indexData.push([_secondRoot2, _midFirst4, _midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([_underOne2, _underTwo2, _midFirst4 + per]);
+					if (!debugRight && !debugBottom) indexData.push([_underTwo2, _midSecond + per, _midFirst4 + per]);
+					for (_a10 = 1; _a10 < per; _a10++) {
+						var _previousFirst = _location4 + _level2 + (_a10 - 1);
+						var _previousSecond = _nextLocation2 + _nextLevel2 + (_a10 - 1);
+						var _nextFirst4 = _location4 + _level2 + _a10;
+						var _nextSecond = _nextLocation2 + _nextLevel2 + _a10;
+						if (!debugLeft && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst4]);
+						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
+						if (!debugRight && !debugTop) indexData.push([_previousSecond, _nextFirst4, _nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([_previousSecond + per, _nextFirst4 + per, _previousFirst + per]);
+						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([_previousSecond + per, _nextSecond + per, _nextFirst4 + per]);
+					}
 				}
 			}
 		}
 	}
 
-	if (plotFancy && sphereFraction !== "whole") for (var _i9 = 0; _i9 < intersectionAreaRings; _i9++) {
+	if (!debugFirst && plotFancy && sphereFraction !== "whole") for (var _i9 = 0; _i9 < intersectionAreaRings; _i9++) {
 		// first beam ends
 		var one = (rings + _i9) * (slices + 1);
 		var two = (rings + _i9 + 1) * (slices + 1);
@@ -4576,26 +4737,30 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			indexData.push([one, two, firstTip]); // beam end
 		} else {
 			var _location5 = extraFancyStart;
-			if (_i9) _location5 = firstBeamEndsStart;
-			var _nextLocation3 = firstBeamEndsStart;
+			if (_i9) _location5 = firstBeamEndsStart + (_i9 - 1) * per;
+			var _nextLocation3 = firstBeamEndsStart + _i9 * per;
 			if (_i9 === intersectionAreaRings - 1) _nextLocation3 = extraFancyStart + per; // last line is the underside
 			var _a11 = 0;
 			var _midFirst5 = _location5 + _a11;
 			var _midSecond2 = _nextLocation3 + _a11;
-			indexData.push([one, two, _midFirst5]);
-			indexData.push([two, _midSecond2, _midFirst5]);
+			if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
+				indexData.push([one, two, _midFirst5]);
+				indexData.push([two, _midSecond2, _midFirst5]);
+			}
 			for (_a11 = 1; _a11 < per; _a11++) {
 				var _previousFirst2 = _location5 + (_a11 - 1);
 				var _previousSecond2 = _nextLocation3 + (_a11 - 1);
 				var _nextFirst5 = _location5 + _a11;
 				var _nextSecond2 = _nextLocation3 + _a11;
-				indexData.push([_previousSecond2, _nextFirst5, _previousFirst2]);
-				indexData.push([_previousSecond2, _nextSecond2, _nextFirst5]);
+				if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
+					indexData.push([_previousSecond2, _nextFirst5, _previousFirst2]);
+					indexData.push([_previousSecond2, _nextSecond2, _nextFirst5]);
+				}
 			}
 		}
 	}
 
-	if (plotFancy && sphereFraction !== "whole") for (var _i10 = 0; _i10 < intersectionAreaRings; _i10++) {
+	if (!debugLast && plotFancy && sphereFraction !== "whole") for (var _i10 = 0; _i10 < intersectionAreaRings; _i10++) {
 		// last beam ends
 		var three = (rings + _i10) * (slices + 1) + slices;
 		var four = (rings + _i10 + 1) * (slices + 1) + slices;
@@ -4604,21 +4769,25 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			indexData.push([four, three, lastTip]); // beam end
 		} else {
 			var _location6 = extraFancyStart + (slices + lastEdgeCount) * per * 2;
-			if (_i10) _location6 = lastBeamEndsStart;
-			var _nextLocation4 = lastBeamEndsStart;
+			if (_i10) _location6 = lastBeamEndsStart + (_i10 - 1) * per;
+			var _nextLocation4 = lastBeamEndsStart + _i10 * per;
 			if (_i10 === intersectionAreaRings - 1) _nextLocation4 = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
 			var _a12 = 0;
 			var _midFirst6 = _location6 + _a12;
 			var _midSecond3 = _nextLocation4 + _a12;
-			indexData.push([four, three, _midFirst6]);
-			indexData.push([_midSecond3, four, _midFirst6]);
+			if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
+				indexData.push([four, three, _midFirst6]);
+				indexData.push([_midSecond3, four, _midFirst6]);
+			}
 			for (_a12 = 1; _a12 < per; _a12++) {
 				var _previousFirst3 = _location6 + (_a12 - 1);
 				var _previousSecond3 = _nextLocation4 + (_a12 - 1);
 				var _nextFirst6 = _location6 + _a12;
 				var _nextSecond3 = _nextLocation4 + _a12;
-				indexData.push([_nextFirst6, _previousSecond3, _previousFirst3]);
-				indexData.push([_nextSecond3, _previousSecond3, _nextFirst6]);
+				if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
+					indexData.push([_nextFirst6, _previousSecond3, _previousFirst3]);
+					indexData.push([_nextSecond3, _previousSecond3, _nextFirst6]);
+				}
 			}
 		}
 	}
@@ -4671,83 +4840,6 @@ var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVert
 	move(mesh, shift);
 	return mesh;
 });
-
-/***/ }),
-/* 36 */
-/***/ (function(module, exports) {
-
-var cache = {
-    '1': bezier1
-  , '2': bezier2
-  , '3': bezier3
-  , '4': bezier4
-}
-
-module.exports = neat
-module.exports.prepare = prepare
-
-function neat(arr, t) {
-  return prepare(arr.length)(arr, t)
-}
-
-function prepare(pieces) {
-  pieces = +pieces|0
-  if (!pieces) throw new Error('Cannot create a interpolator with no elements')
-  if (cache[pieces]) return cache[pieces]
-
-  var fn = ['var ut = 1 - t', '']
-
-  var n = pieces
-  while (n--) {
-    for (var j = 0; j < n; j += 1) {
-      if (n+1 === pieces) {
-        fn.push('var p'+j+' = arr['+j+'] * ut + arr['+(j+1)+'] * t')
-      } else
-      if (n > 1) {
-        fn.push('p'+j+' = p'+j+' * ut + p'+(j+1)+' * t')
-      } else {
-        fn.push('return p'+j+' * ut + p'+(j+1)+' * t')
-      }
-    }
-    if (n > 1) fn.push('')
-  }
-
-  fn = [
-    'return function bezier'+pieces+'(arr, t) {'
-    , fn.map(function(s) { return '  ' + s }).join('\n')
-    , '}'
-  ].join('\n')
-
-  return Function(fn)()
-}
-
-//
-// Including the first four degrees
-// manually - there's a slight performance penalty
-// to generated code. It's outweighed by
-// the gains of the optimisations, but always
-// helps to cover the most common cases :)
-//
-
-function bezier1(arr) {
-  return arr[0]
-}
-
-function bezier2(arr, t) {
-  return arr[0] + (arr[1] - arr[0]) * t
-}
-
-function bezier3(arr, t) {
-  var ut = 1 - t
-  return (arr[0] * ut + arr[1] * t) * ut + (arr[1] * ut + arr[2] * t) * t
-}
-
-function bezier4(arr, t) {
-  var ut = 1 - t
-  var a1 = arr[1] * ut + arr[2] * t
-  return ((arr[0] * ut + arr[1] * t) * ut + a1 * t) * ut + (a1 * ut + (arr[2] * ut + arr[3] * t) * t) * t
-}
-
 
 /***/ }),
 /* 37 */
@@ -6560,7 +6652,7 @@ module.exports = function( a, b ) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var isLeftOn = __webpack_require__(45);
-var isLeft = __webpack_require__(18);
+var isLeft = __webpack_require__(19);
 
 module.exports = function( a0, a, a1, b ) {
   if( isLeftOn( a, a1, a0 ) ) {
@@ -6611,7 +6703,7 @@ module.exports = function( a, b, c, d ) {
 /* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isColinear = __webpack_require__(26);
+var isColinear = __webpack_require__(27);
 
 module.exports = function( a, b, c ) {
   if( !isColinear( a, b, c ) ) {
@@ -6658,7 +6750,7 @@ module.exports = function( i, j, polygon ) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var isEqual = __webpack_require__(44);
-var intersectsProper = __webpack_require__(25);
+var intersectsProper = __webpack_require__(26);
 
 module.exports = function( a, b, polygon ) {
   var c, c1, len = polygon.length;
@@ -6679,7 +6771,7 @@ module.exports = function( a, b, polygon ) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var isZero = __webpack_require__(10);
-var isEqual = __webpack_require__(27);
+var isEqual = __webpack_require__(28);
 
 module.exports = function( a, b ) {
   if( isEqual( a[0], b[0] ) && isEqual( a[1], b[1] ) ) {
@@ -6693,8 +6785,8 @@ module.exports = function( a, b ) {
 /* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var area2 = __webpack_require__(17);
-var greaterThanZero = __webpack_require__(24);
+var area2 = __webpack_require__(18);
+var greaterThanZero = __webpack_require__(25);
 var isZero = __webpack_require__(10);
 
 module.exports = function( a, b, c ) {
@@ -9422,8 +9514,8 @@ module.exports = [
 /* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var cross = __webpack_require__(29);
-var normalize = __webpack_require__(30);
+var cross = __webpack_require__(30);
+var normalize = __webpack_require__(31);
 
 module.exports = function( a, b, c ) {
   var r = [ 0.0, 0.0, 0.0 ];
@@ -10298,7 +10390,7 @@ var _actions = __webpack_require__(9);
 
 var actions = _interopRequireWildcard(_actions);
 
-var _selectors = __webpack_require__(23);
+var _selectors = __webpack_require__(24);
 
 var selectors = _interopRequireWildcard(_selectors);
 
@@ -10756,8 +10848,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var bezier = __webpack_require__(36);
-var cubic = __webpack_require__(36).prepare(4);
+var bezier = __webpack_require__(17);
+var cubic = __webpack_require__(17).prepare(4);
 
 var BezierCell = function (_Component) {
 	_inherits(BezierCell, _Component);
@@ -11705,7 +11797,7 @@ var _actions = __webpack_require__(9);
 
 var actions = _interopRequireWildcard(_actions);
 
-var _plot = __webpack_require__(35);
+var _plot = __webpack_require__(36);
 
 var plot = _interopRequireWildcard(_plot);
 
@@ -12374,7 +12466,7 @@ var _actions = __webpack_require__(9);
 
 var actions = _interopRequireWildcard(_actions);
 
-var _selectors = __webpack_require__(23);
+var _selectors = __webpack_require__(24);
 
 var selectors = _interopRequireWildcard(_selectors);
 
@@ -12635,7 +12727,7 @@ var _App2 = _interopRequireDefault(_App);
 
 var _reducers = __webpack_require__(68);
 
-var _redux = __webpack_require__(34);
+var _redux = __webpack_require__(35);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -12860,7 +12952,7 @@ var Interact = function (_Component) {
 			var oldZ = camera[2];
 			var newZ = oldZ - e.deltaY / 3.0;
 			if (newZ < -300) newZ = -300;
-			if (newZ > 30) newZ = 30;
+			if (newZ > 40) newZ = 40;
 
 			this.props.changeCameraOrientation([camera[0], camera[1], newZ]);
 		}
@@ -12931,17 +13023,20 @@ var fractionValues = ["quarter", "half", "whole"];
 var sunShapeLabels = ["Sphere", "Cylinder"];
 var sunShapeValues = [1, 2];
 
-var bookBezier = [{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.75 }, { "id": "y0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "x1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.9 }, { "id": "y1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }];
+var debug = [{ "id": "debugEven", "displayName": "Even", "type": "bool", "default": false }, { "id": "debugOdd", "displayName": "Odd", "type": "bool", "default": false }, { "id": "debugLeft", "displayName": "Left", "type": "bool", "default": false }, { "id": "debugRight", "displayName": "Right", "type": "bool", "default": false }, { "id": "debugTop", "displayName": "Top", "type": "bool", "default": false }, { "id": "debugBottom", "displayName": "Bottom", "type": "bool", "default": false }, { "id": "debugFirst", "displayName": "First", "type": "bool", "default": false }, { "id": "debugLast", "displayName": "Last", "type": "bool", "default": false }];
+
+var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "y0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }, { "id": "x1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "y1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }];
+
+var notImplemented = [{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false }, { "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true }, { "id": "flatTop", "displayName": "Flat Top", "type": "bool", "default": true }];
 
 var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[0] }];
-var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 2 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false }, { "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true }];
-var test = [{ "id": "useTest", "displayName": "Use Test", "type": "bool", "default": false }, { "id": "bezier", "displayName": "Cubic Bezier", "type": "bezier", "default": bookBezier }, { "id": "pageRatio", "displayName": "Page ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }];
+var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 3 }, // <---
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];
 
-var presets = exports.presets = [{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 }, { "id": "resolution", "displayName": "Resolution", "type": "int", "rangeMin": 1, "rangeMax": 200, "default": 5 }, // <---
-{ "id": "sun", "displayName": "Sun", "type": "group", "default": sun }, { "id": "beam", "displayName": "Beam", "type": "group", "default": beam }, { "id": "test", "displayName": "Test", "type": "group", "default": test }, { "id": "base", "displayName": "Base", "type": "group", "default": base }];
+var presets = exports.presets = [{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 }, { "id": "resolution", "displayName": "Resolution", "type": "int", "rangeMin": 1, "rangeMax": 200, "default": 25 }, // <---
+{ "id": "sun", "displayName": "Sun", "type": "group", "default": sun }, { "id": "beam", "displayName": "Beam", "type": "group", "default": beam }, { "id": "base", "displayName": "Base", "type": "group", "default": base }, { "id": "debug", "displayName": "Debug", "type": "group", "default": debug }];
 
 /***/ }),
 /* 89 */
@@ -12964,7 +13059,7 @@ var _actions = __webpack_require__(9);
 
 var actions = _interopRequireWildcard(_actions);
 
-var _plot = __webpack_require__(35);
+var _plot = __webpack_require__(36);
 
 var plot = _interopRequireWildcard(_plot);
 
@@ -13837,8 +13932,8 @@ exports.nextCombination = function(v) {
 /* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var isEqual = __webpack_require__(27);
-var isLeft = __webpack_require__(18);
+var isEqual = __webpack_require__(28);
+var isLeft = __webpack_require__(19);
 
 module.exports = function( polygon ) {
   // find the lowest rightmost point
@@ -13977,7 +14072,7 @@ module.exports = function( polygon, amount ) {
 /* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var intersectsProper = __webpack_require__(25);
+var intersectsProper = __webpack_require__(26);
 var isBetween = __webpack_require__(41);
 
 module.exports = function( a, b, c, d )
@@ -19661,7 +19756,7 @@ var createAttributeWrapper = __webpack_require__(121)
 var makeReflect            = __webpack_require__(50)
 var shaderCache            = __webpack_require__(124)
 var runtime                = __webpack_require__(123)
-var GLError                = __webpack_require__(19)
+var GLError                = __webpack_require__(20)
 
 //Shader object
 function Shader(gl) {
@@ -19899,7 +19994,7 @@ module.exports = createShader
 
 module.exports = createAttributeWrapper
 
-var GLError = __webpack_require__(19)
+var GLError = __webpack_require__(20)
 
 function ShaderAttribute(
     gl
@@ -20168,7 +20263,7 @@ function createAttributeWrapper(
 
 
 var coallesceUniforms = __webpack_require__(50)
-var GLError = __webpack_require__(19)
+var GLError = __webpack_require__(20)
 
 module.exports = createUniformWrapper
 
@@ -20453,7 +20548,7 @@ function runtimeAttributes(gl, program) {
 exports.shader   = getShaderReference
 exports.program  = createProgram
 
-var GLError = __webpack_require__(19)
+var GLError = __webpack_require__(20)
 var formatCompilerError = __webpack_require__(112);
 
 var weakMap = typeof WeakMap === 'undefined' ? __webpack_require__(196) : WeakMap
@@ -21458,8 +21553,8 @@ module.exports = function( verts, faces ) {
 /* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var cross = __webpack_require__(29);
-var normalize = __webpack_require__(30);
+var cross = __webpack_require__(30);
+var normalize = __webpack_require__(31);
 var normalizeArray = __webpack_require__(55);
 
 module.exports = function( verts, faces ) {
@@ -21781,7 +21876,7 @@ function keydown(e) {
   down[keys[e.keyCode]] = true
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(33)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(34)))
 
 /***/ }),
 /* 145 */
@@ -22556,12 +22651,12 @@ exports.EdgeVertices = __webpack_require__(178);
 exports.FaceHalfEdges = __webpack_require__(12);
 exports.FaceVertices = __webpack_require__(7);
 exports.VertexFaces = __webpack_require__(179);
-exports.VertexHalfEdges = __webpack_require__(21);
-exports.VertexNeighbors = __webpack_require__(22);
-exports.MeshCentroid = __webpack_require__(32);
+exports.VertexHalfEdges = __webpack_require__(22);
+exports.VertexNeighbors = __webpack_require__(23);
+exports.MeshCentroid = __webpack_require__(33);
 
 // Operators
-exports.InsertVertexOperator = __webpack_require__(20);
+exports.InsertVertexOperator = __webpack_require__(21);
 exports.InsertEdgeOperator = __webpack_require__(14);
 exports.DeleteEdgeOperator = __webpack_require__(167);
 exports.LoopOperator = __webpack_require__(171);
@@ -22576,7 +22671,7 @@ exports.ScaleOperator = __webpack_require__(175);
 exports.MoveOperator = __webpack_require__(172);
 exports.InvertOperator = __webpack_require__(170);
 exports.WireframeOperator = __webpack_require__(177);
-exports.CreateFaceOperator = __webpack_require__(31);
+exports.CreateFaceOperator = __webpack_require__(32);
 
 // Generator
 exports.ProfileGenerator = __webpack_require__(163);
@@ -22655,11 +22750,11 @@ module.exports = function( mesh ) {
 /* 165 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var VertexNeighbors = __webpack_require__(22);
+var VertexNeighbors = __webpack_require__(23);
 var FaceVertices = __webpack_require__(7);
 var FaceHalfEdges = __webpack_require__(12);
-var VertexHalfEdges = __webpack_require__(21);
-var InsertVertex = __webpack_require__(20);
+var VertexHalfEdges = __webpack_require__(22);
+var InsertVertex = __webpack_require__(21);
 var InsertEdge = __webpack_require__(14);
 
 var vec3 = __webpack_require__(0).vec3;
@@ -22992,9 +23087,9 @@ var HalfEdge = __webpack_require__(6);
 var Face = __webpack_require__(5);
 
 var FaceHalfEdges = __webpack_require__(12);
-var MeshCentroid = __webpack_require__(32);
+var MeshCentroid = __webpack_require__(33);
 var calculateNormal = __webpack_require__(2).calculateNormal;
-var expandPolygon = __webpack_require__(28).expandPolygon2;
+var expandPolygon = __webpack_require__(29).expandPolygon2;
 
 var vec3 = __webpack_require__(0).vec3;
 var quat = __webpack_require__(0).quat;
@@ -23298,8 +23393,8 @@ module.exports = function( mesh ) {
 
 var vec3 = __webpack_require__(0).vec3;
 var FaceVertices = __webpack_require__(7);
-var VertexNeighbors = __webpack_require__(22);
-var InsertVertex = __webpack_require__(20);
+var VertexNeighbors = __webpack_require__(23);
+var InsertVertex = __webpack_require__(21);
 var InsertEdge = __webpack_require__(14);
 
 module.exports = function( mesh ) {
@@ -23427,7 +23522,7 @@ var FaceHalfEdges = __webpack_require__(12);
 var FaceVertices = __webpack_require__(7);
 var HalfEdgePrev = __webpack_require__(15);
 
-var createFace = __webpack_require__(31);
+var createFace = __webpack_require__(32);
 
 module.exports = function( mesh, faceIndex0, faceIndex1, vertexOffset ) {
   var meshFaces = mesh.getFaces();
@@ -23479,9 +23574,9 @@ module.exports = function( mesh, faceIndex0, faceIndex1, vertexOffset ) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var vec3 = __webpack_require__(0).vec3;
-var VertexNeighbors = __webpack_require__(22);
+var VertexNeighbors = __webpack_require__(23);
 var FaceVertices = __webpack_require__(7);
-var InsertVertex = __webpack_require__(20);
+var InsertVertex = __webpack_require__(21);
 var InsertEdge = __webpack_require__(14);
 
 module.exports = function( mesh ) {
@@ -23531,7 +23626,7 @@ module.exports = function( mesh ) {
 /* 175 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var MeshCentroid = __webpack_require__(32);
+var MeshCentroid = __webpack_require__(33);
 
 var vec3 = __webpack_require__(0).vec3;
 
@@ -23560,7 +23655,7 @@ module.exports = function( mesh, scale ) {
 
 var FaceVertices = __webpack_require__(7);
 var calculateNormal = __webpack_require__(2).calculateNormal;
-var triangulatePolygon = __webpack_require__(28).triangulatePolygon2;
+var triangulatePolygon = __webpack_require__(29).triangulatePolygon2;
 var vec3 = __webpack_require__(0).vec3;
 var quat = __webpack_require__(0).quat;
 var InsertEdge = __webpack_require__(14);
@@ -23618,11 +23713,11 @@ module.exports = function( mesh ) {
 var Vertex = __webpack_require__(11);
 var FaceHalfEdges = __webpack_require__(12);
 var FaceVertices = __webpack_require__(7);
-var VertexHalfEdges = __webpack_require__(21);
-var CreateFace = __webpack_require__(31);
+var VertexHalfEdges = __webpack_require__(22);
+var CreateFace = __webpack_require__(32);
 var Cross = __webpack_require__(2).cross;
 var CalculateNormal = __webpack_require__(2).calculateNormal;
-var ExpandPolygon = __webpack_require__(28).expandPolygon2;
+var ExpandPolygon = __webpack_require__(29).expandPolygon2;
 
 var vec3 = __webpack_require__(0).vec3;
 var quat = __webpack_require__(0).quat;
@@ -24875,7 +24970,7 @@ function combineReducers(reducers) {
     return hasChanged ? nextState : state;
   };
 }
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(33)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(34)))
 
 /***/ }),
 /* 186 */

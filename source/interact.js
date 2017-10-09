@@ -160,7 +160,7 @@ class Interact extends Component {
 		const oldZ = camera[2];
 		let newZ = oldZ - e.deltaY / 3.0;
 		if (newZ < -300) newZ = -300;
-		if (newZ > 30) newZ = 30;
+		if (newZ > 40) newZ = 40;
 		
 		this.props.changeCameraOrientation([camera[0], camera[1], newZ]);
 	}
