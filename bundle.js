@@ -10562,7 +10562,7 @@ function draggingDivider(state, action) {
 	return state;
 }
 function dividerRatio() {
-	var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0.5;
+	var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0.25;
 	var action = arguments[1];
 
 	if (action.type === actions.RESIZE_DIVIDER) return action.value;
