@@ -230,7 +230,6 @@ const beamFullTopThetaSelector = createSelector( // not isosceles if squashed
 	}
 );
 
-
 const ringDeltaTopSelector = createSelector([settingsSelector,beamFullTopThetaSelector], (settings, beamTopTheta) => {
 	const minus = quarter - beamTopTheta;
 	const result = minus / settings.resolution;
@@ -263,19 +262,21 @@ const bottomFaceIndicesSelector = createSelector(
 		const lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
 		const firstBeamEndsStart = lastEdgeStart;
 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+
 		bottomFaceIndices.push(anchor);
 
-// 		if (sphereFraction !== "whole") { // first beam ends
-// 			const firstRoot = (rings + intersectionAreaRings) * (slices + 1);
-// 			bottomFaceIndices.push(firstRoot);
-// 			const location = firstBeamEndsStart;
-// 			const midFirst = location;
-// 			bottomFaceIndices.push(midFirst);
-// 			for (let a=1; a<beamLengthVertexCount; a++) {
-// 				const nextFirst = location + a;
-// 				bottomFaceIndices.push(nextFirst);
-// 			}
-// 		}
+		if (sphereFraction !== "whole") { // first beam ends // needed after all?
+			const firstRoot = (rings + intersectionAreaRings) * (slices + 1);
+			bottomFaceIndices.push(firstRoot);
+			//const location = firstBeamEndsStart;
+			const location = extraFancyStart + beamLengthVertexCount;
+			const midFirst = location;
+			bottomFaceIndices.push(midFirst);
+			for (let a=1; a<beamLengthVertexCount; a++) {
+				const nextFirst = location + a;
+				bottomFaceIndices.push(nextFirst);
+			}
+		}
 
 		if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
 			const larger = j % (per * 2);
@@ -327,18 +328,19 @@ const bottomFaceIndicesSelector = createSelector(
 			}
 		}
 
-// 		if (sphereFraction !== "whole") { // last beam ends
-// 			const location = lastBeamEndsStart;
-// 			let a = beamLengthVertexCount;
-// 			while (--a) {
-// 				const nextFirst = location + a;
-// 				bottomFaceIndices.push(nextFirst);
-// 			}
-// 			const midFirst = location;
-// 			bottomFaceIndices.push(midFirst);
-// 			const lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
-// 			bottomFaceIndices.push(lastRoot);
-// 		}
+		if (sphereFraction !== "whole") { // last beam ends // needed after all?
+			//const location = lastBeamEndsStart;
+			const location = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount;
+			let a = beamLengthVertexCount;
+			while (--a) {
+				const nextFirst = location + a;
+				bottomFaceIndices.push(nextFirst);
+			}
+			const midFirst = location;
+			bottomFaceIndices.push(midFirst);
+			const lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
+			bottomFaceIndices.push(lastRoot);
+		}
 
 		bottomFaceIndices.push(anchor);
 		return bottomFaceIndices;
@@ -727,8 +729,7 @@ const sunIndicesSelector = createSelector(
 				let location = extraFancyStart;
 				if (i) location = firstBeamEndsStart + (i-1)*beamLengthVertexCount;
 				let nextLocation = firstBeamEndsStart + i*beamLengthVertexCount;
-				// temporarily disabled
-				//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
+				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
 				let a = 0;
 				const midFirst = location + a;
 				const midSecond = nextLocation + a;
@@ -759,8 +760,7 @@ const sunIndicesSelector = createSelector(
 				let location = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2;
 				if (i) location = lastBeamEndsStart + (i-1)*beamLengthVertexCount;
 				let nextLocation = lastBeamEndsStart + i*beamLengthVertexCount;
-				// temporarily disabled
-				//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
+				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
 				let a = 0;
 				const midFirst = location + a;
 				const midSecond = nextLocation + a;
@@ -818,16 +818,18 @@ const sunIndicesSelector = createSelector(
 );
 
 export const meshSelector = createSelector(
-	[sunVerticesSelector, sunIndicesSelector, baseHeightSelector,bottomFaceIndicesSelector],
-	(sunVertices, sunIndices,baseHeight,bottomFaceIndices) => {
+	[sunVerticesSelector, sunIndicesSelector, baseHeightSelector],
+	(sunVertices, sunIndices,baseHeight) => {
 		const cells = sunIndices;
 		const mesh = new Mesh();
-		mesh.setPositions(sunVertices);
-		mesh.setCells(cells);
+		const sunVerticesResult = sunVertices.map( item => item.slice(0) );
+		mesh.setPositions(sunVerticesResult);
+		const cellsResult = cells.map( item => item.slice(0) );
+		mesh.setCells(cellsResult);
 		mesh.process();
 		const shift = vec3.create();
 		vec3.set(shift, 0, 0, -baseHeight);
-		move(mesh,shift);
+		move(mesh,shift); // Mutates! // This causes the model to keep shifting if vertices are not recalculated, happens on debug check click.
 		return mesh;
 	}
 );

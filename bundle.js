@@ -4086,19 +4086,22 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 	var lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
 	var firstBeamEndsStart = lastEdgeStart;
 	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+
 	bottomFaceIndices.push(anchor);
 
-	// 		if (sphereFraction !== "whole") { // first beam ends
-	// 			const firstRoot = (rings + intersectionAreaRings) * (slices + 1);
-	// 			bottomFaceIndices.push(firstRoot);
-	// 			const location = firstBeamEndsStart;
-	// 			const midFirst = location;
-	// 			bottomFaceIndices.push(midFirst);
-	// 			for (let a=1; a<beamLengthVertexCount; a++) {
-	// 				const nextFirst = location + a;
-	// 				bottomFaceIndices.push(nextFirst);
-	// 			}
-	// 		}
+	if (sphereFraction !== "whole") {
+		// first beam ends // needed after all?
+		var firstRoot = (rings + intersectionAreaRings) * (slices + 1);
+		bottomFaceIndices.push(firstRoot);
+		//const location = firstBeamEndsStart;
+		var location = extraFancyStart + beamLengthVertexCount;
+		var midFirst = location;
+		bottomFaceIndices.push(midFirst);
+		for (var a = 1; a < beamLengthVertexCount; a++) {
+			var nextFirst = location + a;
+			bottomFaceIndices.push(nextFirst);
+		}
+	}
 
 	if (plotFancy || extraFancy) for (var j = 0; j < slices; j++) {
 		// new beam indices
@@ -4116,16 +4119,16 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 			var additional = Math.floor((j + per) / (per * 2));
 			var slice = j + additional;
 
-			var location = extraFancyStart;
-			var nextLocation = location;
+			var _location = extraFancyStart;
+			var nextLocation = _location;
 			var nextSlice = slice + 1;
 			var nextLevel = nextSlice * beamLengthVertexCount * 2;
 			var midSecond = nextLocation + nextLevel;
 			if (isLastEdge) {
 				bottomFaceIndices.push(tipIndex);
-				var a = beamLengthVertexCount;
-				while (--a) {
-					var nextSecond = nextLocation + nextLevel + a;
+				var _a = beamLengthVertexCount;
+				while (--_a) {
+					var nextSecond = nextLocation + nextLevel + _a;
 					bottomFaceIndices.push(nextSecond);
 				}
 				bottomFaceIndices.push(midSecond);
@@ -4135,34 +4138,36 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 		if (larger >= per) {
 			if (notLastEdge) i = per - i;
 			var _slice = j + Math.floor((j + per) / (per * 2));
-			var _location = extraFancyStart;
+			var _location2 = extraFancyStart;
 			var level = _slice * beamLengthVertexCount * 2;
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var underOne = k + j;
-			var midFirst = _location + level;
+			var _midFirst = _location2 + level;
 			if (isBeamValley) {
 				bottomFaceIndices.push(underOne);
-				bottomFaceIndices.push(midFirst);
-				for (var _a = 1; _a < beamLengthVertexCount; _a++) {
-					var nextFirst = _location + level + _a;
-					bottomFaceIndices.push(nextFirst);
+				bottomFaceIndices.push(_midFirst);
+				for (var _a2 = 1; _a2 < beamLengthVertexCount; _a2++) {
+					var _nextFirst = _location2 + level + _a2;
+					bottomFaceIndices.push(_nextFirst);
 				}
 			}
 		}
 	}
 
-	// 		if (sphereFraction !== "whole") { // last beam ends
-	// 			const location = lastBeamEndsStart;
-	// 			let a = beamLengthVertexCount;
-	// 			while (--a) {
-	// 				const nextFirst = location + a;
-	// 				bottomFaceIndices.push(nextFirst);
-	// 			}
-	// 			const midFirst = location;
-	// 			bottomFaceIndices.push(midFirst);
-	// 			const lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
-	// 			bottomFaceIndices.push(lastRoot);
-	// 		}
+	if (sphereFraction !== "whole") {
+		// last beam ends // needed after all?
+		//const location = lastBeamEndsStart;
+		var _location3 = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount;
+		var _a3 = beamLengthVertexCount;
+		while (--_a3) {
+			var _nextFirst2 = _location3 + _a3;
+			bottomFaceIndices.push(_nextFirst2);
+		}
+		var _midFirst2 = _location3;
+		bottomFaceIndices.push(_midFirst2);
+		var lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
+		bottomFaceIndices.push(lastRoot);
+	}
 
 	bottomFaceIndices.push(anchor);
 	return bottomFaceIndices;
@@ -4266,27 +4271,27 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var firstPoint = vertexData[firstRoot];
 			var beamSlice = tipNumber * per * 2;
 			var topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
-			for (var _a2 = 1; _a2 < beamLengthVertexCount + 1; _a2++) {
+			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
 				// top side
-				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a2 / beamLengthVertexCount;
-				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a2 / beamLengthVertexCount;
+				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / beamLengthVertexCount;
+				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a4 / beamLengthVertexCount;
 				var regular = [_x3, _y3];
 				var isEndPiece = beamSlice === _j2 || _j2 === slices;
-				var value = isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a2, beamLengthVertexCount, topEdgeLength, 1);
-				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a2 / beamLengthVertexCount]);
+				var value = isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, topEdgeLength, 1);
+				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / beamLengthVertexCount]);
 			}
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var oneIndex = k + _j2; // same as sun bottom, except j loop is one greater, thus too long
 			var onePoint = vertexData[oneIndex];
 			var bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
-			for (var _a3 = 1; _a3 < beamLengthVertexCount + 1; _a3++) {
+			for (var _a5 = 1; _a5 < beamLengthVertexCount + 1; _a5++) {
 				// underside
-				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a3 / beamLengthVertexCount;
-				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a3 / beamLengthVertexCount;
+				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a5 / beamLengthVertexCount;
+				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a5 / beamLengthVertexCount;
 				var _regular = [_x4, _y4];
 				var _isEndPiece = beamSlice === _j2 || _j2 === slices;
-				var _value = _isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a3, beamLengthVertexCount, bottomEdgeLength, 1);
-				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a3 / beamLengthVertexCount + pedestal]);
+				var _value = _isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, bottomEdgeLength, 1);
+				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
 			}
 		}
 
@@ -4309,25 +4314,25 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _firstPoint = vertexData[_firstRoot];
 			var _beamSlice = tipNumber * per * 2;
 			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
-			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
+			for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
 				// top side
-				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a4 / beamLengthVertexCount;
-				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a4 / beamLengthVertexCount;
+				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a6 / beamLengthVertexCount;
+				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a6 / beamLengthVertexCount;
 				var _regular2 = [_x5, _y5];
-				var _value2 = _beamSlice === _j2 && _j2 < slices ? _regular2 : resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, _topEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a4 / beamLengthVertexCount]);
+				var _value2 = _beamSlice === _j2 && _j2 < slices ? _regular2 : resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, beamLengthVertexCount, _topEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / beamLengthVertexCount]);
 			}
 			var _k = (rings + intersectionAreaRings) * (slices + 1);
 			var _oneIndex = _k + slice;
 			var _onePoint = vertexData[_oneIndex];
 			var _bottomEdgeLength = lengthOfEdge(_onePoint, tipPoint);
-			for (var _a5 = 1; _a5 < beamLengthVertexCount + 1; _a5++) {
+			for (var _a7 = 1; _a7 < beamLengthVertexCount + 1; _a7++) {
 				// underside
-				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a5 / beamLengthVertexCount;
-				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a5 / beamLengthVertexCount;
+				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a7 / beamLengthVertexCount;
+				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a7 / beamLengthVertexCount;
 				var _regular3 = [_x6, _y6];
-				var _value3 = _beamSlice === _j2 && _j2 < slices ? _regular3 : resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, _bottomEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
+				var _value3 = _beamSlice === _j2 && _j2 < slices ? _regular3 : resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, beamLengthVertexCount, _bottomEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / beamLengthVertexCount + pedestal]);
 			}
 		}
 	}
@@ -4337,9 +4342,9 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var _firstRoot2 = (rings + _i4) * (slices + 1);
 		var endPoint = vertexData[_firstRoot2];
 		var _tipPoint = vertexData[tips];
-		for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
+		for (var _a8 = 1; _a8 < beamLengthVertexCount + 1; _a8++) {
 			vertexData.push([// beam end
-			endPoint[0] + (_tipPoint[0] - endPoint[0]) * _a6 / beamLengthVertexCount, endPoint[1] + (_tipPoint[1] - endPoint[1]) * _a6 / beamLengthVertexCount, endPoint[2] + (_tipPoint[2] - endPoint[2]) * _a6 / beamLengthVertexCount]);
+			endPoint[0] + (_tipPoint[0] - endPoint[0]) * _a8 / beamLengthVertexCount, endPoint[1] + (_tipPoint[1] - endPoint[1]) * _a8 / beamLengthVertexCount, endPoint[2] + (_tipPoint[2] - endPoint[2]) * _a8 / beamLengthVertexCount]);
 		}
 	}
 
@@ -4348,9 +4353,9 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var lastRoot = (rings + _i5) * (slices + 1) + slices;
 		var _endPoint = vertexData[lastRoot];
 		var _tipPoint2 = vertexData[tips + fullBeamCount];
-		for (var _a7 = 1; _a7 < beamLengthVertexCount + 1; _a7++) {
+		for (var _a9 = 1; _a9 < beamLengthVertexCount + 1; _a9++) {
 			vertexData.push([// beam end
-			_endPoint[0] + (_tipPoint2[0] - _endPoint[0]) * _a7 / beamLengthVertexCount, _endPoint[1] + (_tipPoint2[1] - _endPoint[1]) * _a7 / beamLengthVertexCount, _endPoint[2] + (_tipPoint2[2] - _endPoint[2]) * _a7 / beamLengthVertexCount]);
+			_endPoint[0] + (_tipPoint2[0] - _endPoint[0]) * _a9 / beamLengthVertexCount, _endPoint[1] + (_tipPoint2[1] - _endPoint[1]) * _a9 / beamLengthVertexCount, _endPoint[2] + (_tipPoint2[2] - _endPoint[2]) * _a9 / beamLengthVertexCount]);
 		}
 	}
 
@@ -4482,8 +4487,8 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			var _firstRoot3 = (rings + _i8) * (slices + 1) + _j5;
 			var _secondRoot = _firstRoot3 - slices;
 			var _slice2 = _j5 + Math.floor((_j5 + per) / (per * 2));
-			var _location2 = extraFancyStart;
-			var _nextLocation = _location2;
+			var _location4 = extraFancyStart;
+			var _nextLocation = _location4;
 			var _level = _slice2 * beamLengthVertexCount * 2;
 			var _nextSlice = _slice2 + 1;
 			var _nextLevel = _nextSlice * beamLengthVertexCount * 2;
@@ -4495,25 +4500,25 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 				indexData.push([_secondRoot, _firstRoot3, tipIndex]); // beam top side
 				indexData.push([_underOne, _underTwo, tipIndex]); // beam underside
 			} else {
-				var _a8 = 0;
-				var _midFirst = _location2 + _level + _a8;
-				var _midSecond = _nextLocation + _nextLevel + _a8;
+				var _a10 = 0;
+				var _midFirst3 = _location4 + _level + _a10;
+				var _midSecond = _nextLocation + _nextLevel + _a10;
 				if ((!debugEven || _j5 % 2 !== 0) && (!debugOdd || _j5 % 2 !== 1)) {
-					if (!debugLeft && !debugTop) indexData.push([_secondRoot, _firstRoot3, _midFirst]);
-					if (!debugRight && !debugTop) indexData.push([_secondRoot, _midFirst, _midSecond]);
-					if (!debugLeft && !debugBottom) indexData.push([_underOne, _underTwo, _midFirst + beamLengthVertexCount]);
-					if (!debugRight && !debugBottom) indexData.push([_underTwo, _midSecond + beamLengthVertexCount, _midFirst + beamLengthVertexCount]);
-					for (_a8 = 1; _a8 < beamLengthVertexCount; _a8++) {
-						var _previousFirst = _location2 + _level + (_a8 - 1);
-						var _previousSecond = _nextLocation + _nextLevel + (_a8 - 1);
-						var _nextFirst = _location2 + _level + _a8;
-						var _nextSecond = _nextLocation + _nextLevel + _a8;
-						if (!debugLeft && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst]);
+					if (!debugLeft && !debugTop) indexData.push([_secondRoot, _firstRoot3, _midFirst3]);
+					if (!debugRight && !debugTop) indexData.push([_secondRoot, _midFirst3, _midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([_underOne, _underTwo, _midFirst3 + beamLengthVertexCount]);
+					if (!debugRight && !debugBottom) indexData.push([_underTwo, _midSecond + beamLengthVertexCount, _midFirst3 + beamLengthVertexCount]);
+					for (_a10 = 1; _a10 < beamLengthVertexCount; _a10++) {
+						var _previousFirst = _location4 + _level + (_a10 - 1);
+						var _previousSecond = _nextLocation + _nextLevel + (_a10 - 1);
+						var _nextFirst3 = _location4 + _level + _a10;
+						var _nextSecond = _nextLocation + _nextLevel + _a10;
+						if (!debugLeft && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst3]);
 						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!debugRight && !debugTop) indexData.push([_previousSecond, _nextFirst, _nextSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextFirst + beamLengthVertexCount, _previousFirst + beamLengthVertexCount]);
+						if (!debugRight && !debugTop) indexData.push([_previousSecond, _nextFirst3, _nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextFirst3 + beamLengthVertexCount, _previousFirst + beamLengthVertexCount]);
 						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextSecond + beamLengthVertexCount, _nextFirst + beamLengthVertexCount]);
+						if (!debugRight && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextSecond + beamLengthVertexCount, _nextFirst3 + beamLengthVertexCount]);
 					}
 				}
 			}
@@ -4528,26 +4533,25 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		if (!extraFancy) {
 			indexData.push([one, two, firstTip]); // beam end
 		} else {
-			var _location3 = extraFancyStart;
-			if (_i9) _location3 = firstBeamEndsStart + (_i9 - 1) * beamLengthVertexCount;
+			var _location5 = extraFancyStart;
+			if (_i9) _location5 = firstBeamEndsStart + (_i9 - 1) * beamLengthVertexCount;
 			var _nextLocation2 = firstBeamEndsStart + _i9 * beamLengthVertexCount;
-			// temporarily disabled
-			//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
-			var _a9 = 0;
-			var _midFirst2 = _location3 + _a9;
-			var _midSecond2 = _nextLocation2 + _a9;
-			if ((!debugEven || _a9 % 2 !== 0) && (!debugOdd || _a9 % 2 !== 1)) {
-				if (!debugLeft) indexData.push([one, two, _midFirst2]);
-				if (!debugRight) indexData.push([two, _midSecond2, _midFirst2]);
+			if (_i9 === intersectionAreaRings - 1) _nextLocation2 = extraFancyStart + beamLengthVertexCount; // last line is the underside
+			var _a11 = 0;
+			var _midFirst4 = _location5 + _a11;
+			var _midSecond2 = _nextLocation2 + _a11;
+			if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
+				if (!debugLeft) indexData.push([one, two, _midFirst4]);
+				if (!debugRight) indexData.push([two, _midSecond2, _midFirst4]);
 			}
-			for (_a9 = 1; _a9 < beamLengthVertexCount; _a9++) {
-				var _previousFirst2 = _location3 + (_a9 - 1);
-				var _previousSecond2 = _nextLocation2 + (_a9 - 1);
-				var _nextFirst2 = _location3 + _a9;
-				var _nextSecond2 = _nextLocation2 + _a9;
-				if ((!debugEven || _a9 % 2 !== 0) && (!debugOdd || _a9 % 2 !== 1)) {
-					if (!debugLeft) indexData.push([_previousSecond2, _nextFirst2, _previousFirst2]);
-					if (!debugRight) indexData.push([_previousSecond2, _nextSecond2, _nextFirst2]);
+			for (_a11 = 1; _a11 < beamLengthVertexCount; _a11++) {
+				var _previousFirst2 = _location5 + (_a11 - 1);
+				var _previousSecond2 = _nextLocation2 + (_a11 - 1);
+				var _nextFirst4 = _location5 + _a11;
+				var _nextSecond2 = _nextLocation2 + _a11;
+				if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
+					if (!debugLeft) indexData.push([_previousSecond2, _nextFirst4, _previousFirst2]);
+					if (!debugRight) indexData.push([_previousSecond2, _nextSecond2, _nextFirst4]);
 				}
 			}
 		}
@@ -4561,26 +4565,25 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		if (!extraFancy) {
 			indexData.push([four, three, lastTip]); // beam end
 		} else {
-			var _location4 = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2;
-			if (_i10) _location4 = lastBeamEndsStart + (_i10 - 1) * beamLengthVertexCount;
+			var _location6 = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2;
+			if (_i10) _location6 = lastBeamEndsStart + (_i10 - 1) * beamLengthVertexCount;
 			var _nextLocation3 = lastBeamEndsStart + _i10 * beamLengthVertexCount;
-			// temporarily disabled
-			//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
-			var _a10 = 0;
-			var _midFirst3 = _location4 + _a10;
-			var _midSecond3 = _nextLocation3 + _a10;
-			if ((!debugEven || _a10 % 2 !== 0) && (!debugOdd || _a10 % 2 !== 1)) {
-				if (!debugLeft) indexData.push([four, three, _midFirst3]);
-				if (!debugRight) indexData.push([_midSecond3, four, _midFirst3]);
+			if (_i10 === intersectionAreaRings - 1) _nextLocation3 = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
+			var _a12 = 0;
+			var _midFirst5 = _location6 + _a12;
+			var _midSecond3 = _nextLocation3 + _a12;
+			if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
+				if (!debugLeft) indexData.push([four, three, _midFirst5]);
+				if (!debugRight) indexData.push([_midSecond3, four, _midFirst5]);
 			}
-			for (_a10 = 1; _a10 < beamLengthVertexCount; _a10++) {
-				var _previousFirst3 = _location4 + (_a10 - 1);
-				var _previousSecond3 = _nextLocation3 + (_a10 - 1);
-				var _nextFirst3 = _location4 + _a10;
-				var _nextSecond3 = _nextLocation3 + _a10;
-				if ((!debugEven || _a10 % 2 !== 0) && (!debugOdd || _a10 % 2 !== 1)) {
-					if (!debugLeft) indexData.push([_nextFirst3, _previousSecond3, _previousFirst3]);
-					if (!debugRight) indexData.push([_nextSecond3, _previousSecond3, _nextFirst3]);
+			for (_a12 = 1; _a12 < beamLengthVertexCount; _a12++) {
+				var _previousFirst3 = _location6 + (_a12 - 1);
+				var _previousSecond3 = _nextLocation3 + (_a12 - 1);
+				var _nextFirst5 = _location6 + _a12;
+				var _nextSecond3 = _nextLocation3 + _a12;
+				if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
+					if (!debugLeft) indexData.push([_nextFirst5, _previousSecond3, _previousFirst3]);
+					if (!debugRight) indexData.push([_nextSecond3, _previousSecond3, _nextFirst5]);
 				}
 			}
 		}
@@ -4623,15 +4626,21 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	return indexData;
 });
 
-var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVerticesSelector, sunIndicesSelector, baseHeightSelector, bottomFaceIndicesSelector], function (sunVertices, sunIndices, baseHeight, bottomFaceIndices) {
+var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVerticesSelector, sunIndicesSelector, baseHeightSelector], function (sunVertices, sunIndices, baseHeight) {
 	var cells = sunIndices;
 	var mesh = new Mesh();
-	mesh.setPositions(sunVertices);
-	mesh.setCells(cells);
+	var sunVerticesResult = sunVertices.map(function (item) {
+		return item.slice(0);
+	});
+	mesh.setPositions(sunVerticesResult);
+	var cellsResult = cells.map(function (item) {
+		return item.slice(0);
+	});
+	mesh.setCells(cellsResult);
 	mesh.process();
 	var shift = vec3.create();
 	vec3.set(shift, 0, 0, -baseHeight);
-	move(mesh, shift);
+	move(mesh, shift); // Mutates! // This causes the model to keep shifting if vertices are not recalculated, happens on debug check click.
 	return mesh;
 });
 
@@ -11819,7 +11828,6 @@ var ListHeader = function (_Component) {
 		key: "handleStlClick",
 		value: function handleStlClick(e) {
 			var mesh = this.props.mesh;
-			//lgp.fileWriter(this.props.fileName+".stl", serializeStl( {
 			lgp.fileWriter(this.props.fileName + ".stl", lgp.stlSerializer({
 				positions: mesh.positions,
 				cells: mesh.cells
@@ -11879,74 +11887,6 @@ function mapStateToProps(state, ownProps) {
 }
 var ConnectedListHeader = (0, _preactRedux.connect)(mapStateToProps, actions)(ListHeader);
 exports.default = ConnectedListHeader;
-
-// function serializeStl( input ) { // TODO: move or fix
-// 	if( input.constructor === Array ) {
-// 		var output = "";
-// 		for( var i = 0; i < input.length; i++ ) {
-// 			output += serializeStlPrivate( input[ 0 ], i );
-// 		}
-// 		return output;
-// 	}
-// 	else {
-// 		return serializeStlPrivate( input, 0 );
-// 	}
-// }
-// 
-// function compatibleNumber(num) {
-// 	return num;
-// }
-// 
-// function serializeStlPrivate( input, index ) {
-// 	if( input.positions === undefined || input.cells === undefined ) {
-// 		throw "Input Not Valid: Does not contain any positions or cells";
-// 	}
-// 	var name = "";
-// 	var cells;
-// 	if (input.cells[ 0 ].constructor === Array) {
-// 		cells = normalize( input.cells );
-// 	} else {
-// 		cells = input.cells;
-// 	}
-// 	var positions = input.positions;
-// 	if (typeof input.positions[0] === Array || typeof input.positions[0] === Float32Array) { // eslint-disable-line no-undef
-// 		positions = normalize( input.positions );
-// 	}
-// 
-// 	var normals = undefined;
-// 	if( input.normals !== undefined ) {
-// 		normals = input.normals[0].constructor === Array ? normalize( input.normals ) : input.normals;
-// 	} else {
-// 		normals = calculateNormals( positions, cells );
-// 	}
-// 	var i0, i1, i2;//, a, b, c;
-// 	var stl = "solid " + name + "\n";
-// 	for( var i = 0; i < cells.length; i += 3 ) {
-// 		i0 = cells[ i ] * 3;
-// 		i1 = cells[ i + 1 ] * 3;
-// 		i2 = cells[ i + 2 ] * 3;
-// 
-// 		if (Number.isNaN(normals[i])) {
-// 			normals[i] = 0;
-// 		}
-// 		if (Number.isNaN(normals[i+1])) {
-// 			normals[i+1] = 0;
-// 		}
-// 		if (Number.isNaN(normals[i+2])) {
-// 			normals[i+2] = 0;
-// 		}
-// 		
-// 		stl += "  facet normal " + compatibleNumber(normals[ i ]) + " " + compatibleNumber(normals[ i + 1 ]) + " " + compatibleNumber(normals[ i + 2 ]) + "\n";
-// 		stl += "	outer loop\n";
-// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i0 ]) + " " + compatibleNumber(positions[ i0 + 1 ]) + " " + compatibleNumber(positions[ i0 + 2 ]) + "\n";
-// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i1 ]) + " " + compatibleNumber(positions[ i1 + 1 ]) + " " + compatibleNumber(positions[ i1 + 2 ]) + "\n";
-// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i2 ]) + " " + compatibleNumber(positions[ i2 + 1 ]) + " " +compatibleNumber(positions[ i2 + 2 ]) + "\n";
-// 		stl += "	endloop\n";
-// 		stl += "  endfacet\n";
-// 	}
-// 	stl += ("endsolid\n");
-// 	return stl;
-// }
 
 /***/ }),
 /* 81 */
