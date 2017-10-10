@@ -3997,7 +3997,7 @@ function starTopAngle(radius, starHeight) {
 	return quarter - angle;
 }
 
-function calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, fullRadius, sunRadius, debug) {
+function calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, fullRadius, sunRadius) {
 	// "step 1"
 	var divisions = fullBeamCount * 2; // 2 divisions per beam
 	var aboveCenterDivisionTheta = 1 / divisions * arcRadians; // from above, slice angle per division
@@ -4026,8 +4026,7 @@ var beamThetaArraySelector = (0, _reselect.createSelector)( // step 2
 	var points = [];
 	for (var i = 0; i <= per; i++) {
 		var theta = i * sliceDelta;
-		var debug = i === per;
-		var starRadius = calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, radius, sunRadius, debug);
+		var starRadius = calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, radius, sunRadius);
 		// 			if (false && i === per) starRadius = sunR; // yes
 		var sunR = radius * horizonRatio;
 		var starH = starHeight(sunR, starRatio);
@@ -4065,10 +4064,18 @@ var ringDeltaTopSelector = (0, _reselect.createSelector)([settingsSelector, beam
 	return result;
 });
 
-var faceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount) {
+var beamLengthVertexCountSelector = (0, _reselect.createSelector)([ringsSelector], // fullBeamCountSelector, slicesSelector],
+function (rings) {
+	//, fullBeamCount, slices) => {
+	//const divisions = fullBeamCount * 2;
+	//const per = slices / divisions;
+	//return per;
+	return rings;
+});
 
-	var faceIndices = [];
+var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, beamLengthVertexCountSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, beamLengthVertexCount) {
 
+	var bottomFaceIndices = [];
 	var divisions = fullBeamCount * 2;
 	var per = slices / divisions;
 	var intersectionAreaRings = beamThetaArray.length - 1;
@@ -4076,22 +4083,22 @@ var faceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector,
 	var tips = anchor + 1;
 	var extraFancyStart = (rings + intersectionAreaRings + 1) * (slices + 1) + 1 + fullBeamCount + 1;
 	var lastEdgeCount = Math.floor((slices + per) / (per * 2));
-	var lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices + 1) * per * 2;
+	var lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
 	var firstBeamEndsStart = lastEdgeStart;
-	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
-	faceIndices.push(anchor);
-	if (sphereFraction !== "whole") {
-		// first beam ends
-		var firstRoot = (rings + intersectionAreaRings) * (slices + 1);
-		faceIndices.push(firstRoot);
-		var location = firstBeamEndsStart;
-		var midFirst = location;
-		faceIndices.push(midFirst);
-		for (var a = 1; a < per; a++) {
-			var nextFirst = location + a;
-			faceIndices.push(nextFirst);
-		}
-	}
+	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+	bottomFaceIndices.push(anchor);
+
+	// 		if (sphereFraction !== "whole") { // first beam ends
+	// 			const firstRoot = (rings + intersectionAreaRings) * (slices + 1);
+	// 			bottomFaceIndices.push(firstRoot);
+	// 			const location = firstBeamEndsStart;
+	// 			const midFirst = location;
+	// 			bottomFaceIndices.push(midFirst);
+	// 			for (let a=1; a<beamLengthVertexCount; a++) {
+	// 				const nextFirst = location + a;
+	// 				bottomFaceIndices.push(nextFirst);
+	// 			}
+	// 		}
 
 	if (plotFancy || extraFancy) for (var j = 0; j < slices; j++) {
 		// new beam indices
@@ -4106,60 +4113,59 @@ var faceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector,
 		//const notBeamValley = (j + per) % (per * 2);
 		var isBeamValley = !((j + per) % (per * 2));
 		if (larger < per) {
-			var additional = Math.floor((j + 0 + per) / (per * 2)) + 0;
+			var additional = Math.floor((j + per) / (per * 2));
 			var slice = j + additional;
 
-			var _location = extraFancyStart;
-			var nextLocation = _location;
+			var location = extraFancyStart;
+			var nextLocation = location;
 			var nextSlice = slice + 1;
-			var nextLevel = nextSlice * per * 2;
+			var nextLevel = nextSlice * beamLengthVertexCount * 2;
 			var midSecond = nextLocation + nextLevel;
 			if (isLastEdge) {
-				faceIndices.push(tipIndex);
-				var _a = per;
-				while (--_a) {
-					var nextSecond = nextLocation + nextLevel + _a;
-					faceIndices.push(nextSecond);
+				bottomFaceIndices.push(tipIndex);
+				var a = beamLengthVertexCount;
+				while (--a) {
+					var nextSecond = nextLocation + nextLevel + a;
+					bottomFaceIndices.push(nextSecond);
 				}
-				faceIndices.push(midSecond);
+				bottomFaceIndices.push(midSecond);
 			}
 		}
 
 		if (larger >= per) {
 			if (notLastEdge) i = per - i;
-			var _slice = j + Math.floor((j + 0 + per) / (per * 2)) + 0;
-			var _location2 = extraFancyStart;
-			var level = _slice * per * 2;
+			var _slice = j + Math.floor((j + per) / (per * 2));
+			var _location = extraFancyStart;
+			var level = _slice * beamLengthVertexCount * 2;
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var underOne = k + j;
-			var _midFirst = _location2 + level;
+			var midFirst = _location + level;
 			if (isBeamValley) {
-				faceIndices.push(underOne);
-				faceIndices.push(_midFirst);
-				for (var _a2 = 1; _a2 < per; _a2++) {
-					var _nextFirst = _location2 + level + _a2;
-					faceIndices.push(_nextFirst);
+				bottomFaceIndices.push(underOne);
+				bottomFaceIndices.push(midFirst);
+				for (var _a = 1; _a < beamLengthVertexCount; _a++) {
+					var nextFirst = _location + level + _a;
+					bottomFaceIndices.push(nextFirst);
 				}
 			}
 		}
 	}
 
-	if (sphereFraction !== "whole") {
-		// last beam ends
-		var _location3 = lastBeamEndsStart;
-		var _a3 = per;
-		while (--_a3) {
-			var _nextFirst2 = _location3 + _a3;
-			faceIndices.push(_nextFirst2);
-		}
-		var _midFirst2 = _location3;
-		faceIndices.push(_midFirst2);
-		var lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
-		faceIndices.push(lastRoot);
-	}
+	// 		if (sphereFraction !== "whole") { // last beam ends
+	// 			const location = lastBeamEndsStart;
+	// 			let a = beamLengthVertexCount;
+	// 			while (--a) {
+	// 				const nextFirst = location + a;
+	// 				bottomFaceIndices.push(nextFirst);
+	// 			}
+	// 			const midFirst = location;
+	// 			bottomFaceIndices.push(midFirst);
+	// 			const lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
+	// 			bottomFaceIndices.push(lastRoot);
+	// 		}
 
-	faceIndices.push(anchor);
-	return faceIndices;
+	bottomFaceIndices.push(anchor);
+	return bottomFaceIndices;
 });
 
 function resolveBezier(x0, y0, x1, y1, fromX, fromY, toX, toY, loc, per, length, direction) {
@@ -4181,7 +4187,7 @@ function lengthOfEdge(firstPoint, tipPoint) {
 	return Math.hypot(firstPoint[0] - tipPoint[0], firstPoint[1] - tipPoint[1]);
 }
 
-var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, faceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, faceIndices, x0, y0, x1, y1, useFlameBezier) {
+var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, bottomFaceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector, beamLengthVertexCountSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, bottomFaceIndices, x0, y0, x1, y1, useFlameBezier, beamLengthVertexCount) {
 	var vertexData = [];
 	for (var i = 0; i < rings; i++) {
 		// latitude // stacked layers // the cap
@@ -4260,27 +4266,27 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var firstPoint = vertexData[firstRoot];
 			var beamSlice = tipNumber * per * 2;
 			var topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
-			for (var _a4 = 1; _a4 < per + 1; _a4++) {
+			for (var _a2 = 1; _a2 < beamLengthVertexCount + 1; _a2++) {
 				// top side
-				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / per;
-				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a4 / per;
+				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a2 / beamLengthVertexCount;
+				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a2 / beamLengthVertexCount;
 				var regular = [_x3, _y3];
 				var isEndPiece = beamSlice === _j2 || _j2 === slices;
-				var value = isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, per, topEdgeLength, 1);
-				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / per]);
+				var value = isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a2, beamLengthVertexCount, topEdgeLength, 1);
+				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a2 / beamLengthVertexCount]);
 			}
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var oneIndex = k + _j2; // same as sun bottom, except j loop is one greater, thus too long
 			var onePoint = vertexData[oneIndex];
 			var bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
-			for (var _a5 = 1; _a5 < per + 1; _a5++) {
+			for (var _a3 = 1; _a3 < beamLengthVertexCount + 1; _a3++) {
 				// underside
-				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a5 / per;
-				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a5 / per;
+				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a3 / beamLengthVertexCount;
+				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a3 / beamLengthVertexCount;
 				var _regular = [_x4, _y4];
 				var _isEndPiece = beamSlice === _j2 || _j2 === slices;
-				var _value = _isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, per, bottomEdgeLength, 1);
-				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / per + pedestal]);
+				var _value = _isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a3, beamLengthVertexCount, bottomEdgeLength, 1);
+				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a3 / beamLengthVertexCount + pedestal]);
 			}
 		}
 
@@ -4303,25 +4309,25 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _firstPoint = vertexData[_firstRoot];
 			var _beamSlice = tipNumber * per * 2;
 			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
-			for (var _a6 = 1; _a6 < per + 1; _a6++) {
+			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
 				// top side
-				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a6 / per;
-				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a6 / per;
+				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a4 / beamLengthVertexCount;
+				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a4 / beamLengthVertexCount;
 				var _regular2 = [_x5, _y5];
-				var _value2 = _beamSlice === _j2 && _j2 < slices ? _regular2 : resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, per, _topEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / per]);
+				var _value2 = _beamSlice === _j2 && _j2 < slices ? _regular2 : resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, _topEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a4 / beamLengthVertexCount]);
 			}
 			var _k = (rings + intersectionAreaRings) * (slices + 1);
 			var _oneIndex = _k + slice;
 			var _onePoint = vertexData[_oneIndex];
 			var _bottomEdgeLength = lengthOfEdge(_onePoint, tipPoint);
-			for (var _a7 = 1; _a7 < per + 1; _a7++) {
+			for (var _a5 = 1; _a5 < beamLengthVertexCount + 1; _a5++) {
 				// underside
-				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a7 / per;
-				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a7 / per;
+				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a5 / beamLengthVertexCount;
+				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a5 / beamLengthVertexCount;
 				var _regular3 = [_x6, _y6];
-				var _value3 = _beamSlice === _j2 && _j2 < slices ? _regular3 : resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, per, _bottomEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / per + pedestal]);
+				var _value3 = _beamSlice === _j2 && _j2 < slices ? _regular3 : resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, _bottomEdgeLength, direction);
+				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
 			}
 		}
 	}
@@ -4331,9 +4337,9 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var _firstRoot2 = (rings + _i4) * (slices + 1);
 		var endPoint = vertexData[_firstRoot2];
 		var _tipPoint = vertexData[tips];
-		for (var _a8 = 1; _a8 < per + 1; _a8++) {
+		for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
 			vertexData.push([// beam end
-			endPoint[0] + (_tipPoint[0] - endPoint[0]) * _a8 / per, endPoint[1] + (_tipPoint[1] - endPoint[1]) * _a8 / per, endPoint[2] + (_tipPoint[2] - endPoint[2]) * _a8 / per]);
+			endPoint[0] + (_tipPoint[0] - endPoint[0]) * _a6 / beamLengthVertexCount, endPoint[1] + (_tipPoint[1] - endPoint[1]) * _a6 / beamLengthVertexCount, endPoint[2] + (_tipPoint[2] - endPoint[2]) * _a6 / beamLengthVertexCount]);
 		}
 	}
 
@@ -4342,17 +4348,17 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var lastRoot = (rings + _i5) * (slices + 1) + slices;
 		var _endPoint = vertexData[lastRoot];
 		var _tipPoint2 = vertexData[tips + fullBeamCount];
-		for (var _a9 = 1; _a9 < per + 1; _a9++) {
+		for (var _a7 = 1; _a7 < beamLengthVertexCount + 1; _a7++) {
 			vertexData.push([// beam end
-			_endPoint[0] + (_tipPoint2[0] - _endPoint[0]) * _a9 / per, _endPoint[1] + (_tipPoint2[1] - _endPoint[1]) * _a9 / per, _endPoint[2] + (_tipPoint2[2] - _endPoint[2]) * _a9 / per]);
+			_endPoint[0] + (_tipPoint2[0] - _endPoint[0]) * _a7 / beamLengthVertexCount, _endPoint[1] + (_tipPoint2[1] - _endPoint[1]) * _a7 / beamLengthVertexCount, _endPoint[2] + (_tipPoint2[2] - _endPoint[2]) * _a7 / beamLengthVertexCount]);
 		}
 	}
 
 	if (fakeExtrude && baseHeight > 0) {
-		var length = faceIndices.length; // pedestal edges
+		var length = bottomFaceIndices.length; // pedestal edges
 		for (var _i6 = 0; _i6 < length; _i6++) {
 			// pedestal outline (copied)
-			var vertex = vertexData[faceIndices[_i6]];
+			var vertex = vertexData[bottomFaceIndices[_i6]];
 			vertexData.push([vertex[0], vertex[1], -baseHeight]);
 		}
 		var _theta2 = Math.PI / 2.0;
@@ -4371,7 +4377,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 	return vertexData;
 });
 
-var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, faceIndicesSelector, baseHeightSelector, flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, faceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast) {
+var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector, flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, beamLengthVertexCountSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, beamLengthVertexCount) {
 	var indexData = [];
 	var divisions = fullBeamCount * 2;
 	var per = slices / divisions;
@@ -4380,10 +4386,11 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	var tips = anchor + 1;
 	var extraFancyStart = (rings + intersectionAreaRings + 1) * (slices + 1) + 1 + fullBeamCount + 1;
 	var lastEdgeCount = Math.floor((slices + per) / (per * 2));
-	var lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices + 1) * per * 2;
+	var lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
 	var firstBeamEndsStart = lastEdgeStart;
-	var lastBeamEndsStart = firstBeamEndsStart + (intersectionAreaRings - 0) * per;
-	var pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + (intersectionAreaRings - 0) * per;
+	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+	var pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+
 	for (var i = 0; i < rings; i++) {
 		// the cap
 		for (var j = 0; j < slices; j++) {
@@ -4428,15 +4435,15 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		if (_larger < per) {
 			var firstRoot = (rings + _i8) * (slices + 1) + _j5;
 			var secondRoot = (rings + _i8 + 1) * (slices + 1) + _j5 + 1;
-			var additional = Math.floor((_j5 + 0 + per) / (per * 2)) + 0;
+			var additional = Math.floor((_j5 + per) / (per * 2));
 			var slice = _j5 + additional;
 			var location = extraFancyStart;
 			var nextLocation = location;
-			var level = slice * per * 2;
+			var level = slice * beamLengthVertexCount * 2;
 			var nextSlice = slice + 1;
-			var nextLevel = nextSlice * per * 2;
+			var nextLevel = nextSlice * beamLengthVertexCount * 2;
 			var _k2 = (rings + intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) _k2 = pedestalStart + faceIndices.length;
+			if (fakeExtrude && baseHeight > 0) _k2 = pedestalStart + bottomFaceIndices.length;
 			var underOne = _k2 + _j5;
 			var underTwo = underOne + 1;
 			if (!extraFancy) {
@@ -4449,19 +4456,22 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 				if ((!debugEven || _j5 % 2 !== 0) && (!debugOdd || _j5 % 2 !== 1)) {
 					if (!debugLeft && !debugTop) indexData.push([secondRoot, firstRoot, midSecond]);
 					if (!debugRight && !debugTop) indexData.push([firstRoot, midFirst, midSecond]);
-					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond + per]);
-					if (!debugRight && !debugBottom) indexData.push([underOne, midSecond + per, midFirst + per]);
-					for (a = 1; a < per; a++) {
+					if (!debugLeft && !debugBottom) indexData.push([underOne, underTwo, midSecond + beamLengthVertexCount]);
+					if (!debugRight && !debugBottom) indexData.push([underOne, midSecond + beamLengthVertexCount, midFirst + beamLengthVertexCount]);
+					for (a = 1; a < beamLengthVertexCount; a++) {
 						var previousFirst = location + level + (a - 1);
 						var previousSecond = nextLocation + nextLevel + (a - 1);
 						var nextFirst = location + level + a;
 						var nextSecond = nextLocation + nextLevel + a;
 						if (!debugLeft && !debugTop) indexData.push([previousSecond, previousFirst, nextSecond]);
-						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
+
+						//if (a < beamLengthVertexCount-1 && !debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
 						if (!debugRight && !debugTop) indexData.push([previousFirst, nextFirst, nextSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([previousFirst + per, previousSecond + per, nextSecond + per]);
-						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([previousFirst + per, nextSecond + per, nextFirst + per]);
+
+						if (!debugLeft && !debugBottom) indexData.push([previousFirst + beamLengthVertexCount, previousSecond + beamLengthVertexCount, nextSecond + beamLengthVertexCount]);
+
+						//if (a < beamLengthVertexCount-1 && !debugRight && !debugBottom) indexData.push([previousFirst+per, nextSecond+per, nextFirst+per]);
+						if (!debugRight && !debugBottom) indexData.push([previousFirst + beamLengthVertexCount, nextSecond + beamLengthVertexCount, nextFirst + beamLengthVertexCount]);
 					}
 				}
 			}
@@ -4471,39 +4481,39 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 			if (notLastEdge) _i8 = per - _i8;
 			var _firstRoot3 = (rings + _i8) * (slices + 1) + _j5;
 			var _secondRoot = _firstRoot3 - slices;
-			var _slice2 = _j5 + Math.floor((_j5 + 0 + per) / (per * 2)) + 0;
-			var _location4 = extraFancyStart;
-			var _nextLocation = _location4;
-			var _level = _slice2 * per * 2;
+			var _slice2 = _j5 + Math.floor((_j5 + per) / (per * 2));
+			var _location2 = extraFancyStart;
+			var _nextLocation = _location2;
+			var _level = _slice2 * beamLengthVertexCount * 2;
 			var _nextSlice = _slice2 + 1;
-			var _nextLevel = _nextSlice * per * 2;
+			var _nextLevel = _nextSlice * beamLengthVertexCount * 2;
 			var _k3 = (rings + intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) _k3 = pedestalStart + faceIndices.length;
+			if (fakeExtrude && baseHeight > 0) _k3 = pedestalStart + bottomFaceIndices.length;
 			var _underOne = _k3 + _j5;
 			var _underTwo = _underOne + 1;
 			if (!extraFancy) {
 				indexData.push([_secondRoot, _firstRoot3, tipIndex]); // beam top side
 				indexData.push([_underOne, _underTwo, tipIndex]); // beam underside
 			} else {
-				var _a10 = 0;
-				var _midFirst3 = _location4 + _level + _a10;
-				var _midSecond = _nextLocation + _nextLevel + _a10;
+				var _a8 = 0;
+				var _midFirst = _location2 + _level + _a8;
+				var _midSecond = _nextLocation + _nextLevel + _a8;
 				if ((!debugEven || _j5 % 2 !== 0) && (!debugOdd || _j5 % 2 !== 1)) {
-					if (!debugLeft && !debugTop) indexData.push([_secondRoot, _firstRoot3, _midFirst3]);
-					if (!debugRight && !debugTop) indexData.push([_secondRoot, _midFirst3, _midSecond]);
-					if (!debugLeft && !debugBottom) indexData.push([_underOne, _underTwo, _midFirst3 + per]);
-					if (!debugRight && !debugBottom) indexData.push([_underTwo, _midSecond + per, _midFirst3 + per]);
-					for (_a10 = 1; _a10 < per; _a10++) {
-						var _previousFirst = _location4 + _level + (_a10 - 1);
-						var _previousSecond = _nextLocation + _nextLevel + (_a10 - 1);
-						var _nextFirst3 = _location4 + _level + _a10;
-						var _nextSecond = _nextLocation + _nextLevel + _a10;
-						if (!debugLeft && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst3]);
+					if (!debugLeft && !debugTop) indexData.push([_secondRoot, _firstRoot3, _midFirst]);
+					if (!debugRight && !debugTop) indexData.push([_secondRoot, _midFirst, _midSecond]);
+					if (!debugLeft && !debugBottom) indexData.push([_underOne, _underTwo, _midFirst + beamLengthVertexCount]);
+					if (!debugRight && !debugBottom) indexData.push([_underTwo, _midSecond + beamLengthVertexCount, _midFirst + beamLengthVertexCount]);
+					for (_a8 = 1; _a8 < beamLengthVertexCount; _a8++) {
+						var _previousFirst = _location2 + _level + (_a8 - 1);
+						var _previousSecond = _nextLocation + _nextLevel + (_a8 - 1);
+						var _nextFirst = _location2 + _level + _a8;
+						var _nextSecond = _nextLocation + _nextLevel + _a8;
+						if (!debugLeft && !debugTop) indexData.push([_previousSecond, _previousFirst, _nextFirst]);
 						//if (a < per-1 && !debugRight && !debugTop) indexData.push([previousSecond, nextFirst, nextSecond]);
-						if (!debugRight && !debugTop) indexData.push([_previousSecond, _nextFirst3, _nextSecond]);
-						if (!debugLeft && !debugBottom) indexData.push([_previousSecond + per, _nextFirst3 + per, _previousFirst + per]);
+						if (!debugRight && !debugTop) indexData.push([_previousSecond, _nextFirst, _nextSecond]);
+						if (!debugLeft && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextFirst + beamLengthVertexCount, _previousFirst + beamLengthVertexCount]);
 						//if (a < per-1 && !debugRight && !debugBottom) indexData.push([previousSecond+per, nextSecond+per, nextFirst+per]);
-						if (!debugRight && !debugBottom) indexData.push([_previousSecond + per, _nextSecond + per, _nextFirst3 + per]);
+						if (!debugRight && !debugBottom) indexData.push([_previousSecond + beamLengthVertexCount, _nextSecond + beamLengthVertexCount, _nextFirst + beamLengthVertexCount]);
 					}
 				}
 			}
@@ -4518,25 +4528,26 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		if (!extraFancy) {
 			indexData.push([one, two, firstTip]); // beam end
 		} else {
-			var _location5 = extraFancyStart;
-			if (_i9) _location5 = firstBeamEndsStart + (_i9 - 1) * per;
-			var _nextLocation2 = firstBeamEndsStart + _i9 * per;
-			if (_i9 === intersectionAreaRings - 1) _nextLocation2 = extraFancyStart + per; // last line is the underside
-			var _a11 = 0;
-			var _midFirst4 = _location5 + _a11;
-			var _midSecond2 = _nextLocation2 + _a11;
-			if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
-				indexData.push([one, two, _midFirst4]);
-				indexData.push([two, _midSecond2, _midFirst4]);
+			var _location3 = extraFancyStart;
+			if (_i9) _location3 = firstBeamEndsStart + (_i9 - 1) * beamLengthVertexCount;
+			var _nextLocation2 = firstBeamEndsStart + _i9 * beamLengthVertexCount;
+			// temporarily disabled
+			//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
+			var _a9 = 0;
+			var _midFirst2 = _location3 + _a9;
+			var _midSecond2 = _nextLocation2 + _a9;
+			if ((!debugEven || _a9 % 2 !== 0) && (!debugOdd || _a9 % 2 !== 1)) {
+				if (!debugLeft) indexData.push([one, two, _midFirst2]);
+				if (!debugRight) indexData.push([two, _midSecond2, _midFirst2]);
 			}
-			for (_a11 = 1; _a11 < per; _a11++) {
-				var _previousFirst2 = _location5 + (_a11 - 1);
-				var _previousSecond2 = _nextLocation2 + (_a11 - 1);
-				var _nextFirst4 = _location5 + _a11;
-				var _nextSecond2 = _nextLocation2 + _a11;
-				if ((!debugEven || _a11 % 2 !== 0) && (!debugOdd || _a11 % 2 !== 1)) {
-					indexData.push([_previousSecond2, _nextFirst4, _previousFirst2]);
-					indexData.push([_previousSecond2, _nextSecond2, _nextFirst4]);
+			for (_a9 = 1; _a9 < beamLengthVertexCount; _a9++) {
+				var _previousFirst2 = _location3 + (_a9 - 1);
+				var _previousSecond2 = _nextLocation2 + (_a9 - 1);
+				var _nextFirst2 = _location3 + _a9;
+				var _nextSecond2 = _nextLocation2 + _a9;
+				if ((!debugEven || _a9 % 2 !== 0) && (!debugOdd || _a9 % 2 !== 1)) {
+					if (!debugLeft) indexData.push([_previousSecond2, _nextFirst2, _previousFirst2]);
+					if (!debugRight) indexData.push([_previousSecond2, _nextSecond2, _nextFirst2]);
 				}
 			}
 		}
@@ -4550,25 +4561,26 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		if (!extraFancy) {
 			indexData.push([four, three, lastTip]); // beam end
 		} else {
-			var _location6 = extraFancyStart + (slices + lastEdgeCount) * per * 2;
-			if (_i10) _location6 = lastBeamEndsStart + (_i10 - 1) * per;
-			var _nextLocation3 = lastBeamEndsStart + _i10 * per;
-			if (_i10 === intersectionAreaRings - 1) _nextLocation3 = extraFancyStart + (slices + lastEdgeCount) * per * 2 + per; // last line is the underside
-			var _a12 = 0;
-			var _midFirst5 = _location6 + _a12;
-			var _midSecond3 = _nextLocation3 + _a12;
-			if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
-				indexData.push([four, three, _midFirst5]);
-				indexData.push([_midSecond3, four, _midFirst5]);
+			var _location4 = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2;
+			if (_i10) _location4 = lastBeamEndsStart + (_i10 - 1) * beamLengthVertexCount;
+			var _nextLocation3 = lastBeamEndsStart + _i10 * beamLengthVertexCount;
+			// temporarily disabled
+			//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
+			var _a10 = 0;
+			var _midFirst3 = _location4 + _a10;
+			var _midSecond3 = _nextLocation3 + _a10;
+			if ((!debugEven || _a10 % 2 !== 0) && (!debugOdd || _a10 % 2 !== 1)) {
+				if (!debugLeft) indexData.push([four, three, _midFirst3]);
+				if (!debugRight) indexData.push([_midSecond3, four, _midFirst3]);
 			}
-			for (_a12 = 1; _a12 < per; _a12++) {
-				var _previousFirst3 = _location6 + (_a12 - 1);
-				var _previousSecond3 = _nextLocation3 + (_a12 - 1);
-				var _nextFirst5 = _location6 + _a12;
-				var _nextSecond3 = _nextLocation3 + _a12;
-				if ((!debugEven || _a12 % 2 !== 0) && (!debugOdd || _a12 % 2 !== 1)) {
-					indexData.push([_nextFirst5, _previousSecond3, _previousFirst3]);
-					indexData.push([_nextSecond3, _previousSecond3, _nextFirst5]);
+			for (_a10 = 1; _a10 < beamLengthVertexCount; _a10++) {
+				var _previousFirst3 = _location4 + (_a10 - 1);
+				var _previousSecond3 = _nextLocation3 + (_a10 - 1);
+				var _nextFirst3 = _location4 + _a10;
+				var _nextSecond3 = _nextLocation3 + _a10;
+				if ((!debugEven || _a10 % 2 !== 0) && (!debugOdd || _a10 % 2 !== 1)) {
+					if (!debugLeft) indexData.push([_nextFirst3, _previousSecond3, _previousFirst3]);
+					if (!debugRight) indexData.push([_nextSecond3, _previousSecond3, _nextFirst3]);
 				}
 			}
 		}
@@ -4590,20 +4602,20 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	for (var _j7 = 0; _j7 < slices; _j7++) {
 		// original sun bottom, without beams
 		var _i13 = (rings + intersectionAreaRings) * (slices + 1);
-		if (fakeExtrude && baseHeight > 0) _i13 = pedestalStart + faceIndices.length;
+		if (fakeExtrude && baseHeight > 0) _i13 = pedestalStart + bottomFaceIndices.length;
 		var _first4 = _i13 + _j7;
 		var _second4 = _first4 + 1;
 		if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, _second4, _first4]);else indexData.push([anchor, _second4, _first4]);
 	}
 	if (fakeExtrude && baseHeight > 0) {
-		var length = faceIndices.length;
+		var length = bottomFaceIndices.length;
 		for (var _i14 = 0; _i14 < length - 1; _i14++) {
-			var topVertex = faceIndices[_i14];
+			var topVertex = bottomFaceIndices[_i14];
 			var bottomVertex = pedestalStart + _i14;
-			var nextTopVertex = faceIndices[_i14 + 1];
+			var nextTopVertex = bottomFaceIndices[_i14 + 1];
 			var nextBottomVertex = pedestalStart + _i14 + 1;
-			indexData.push([topVertex, bottomVertex, nextTopVertex]);
-			indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
+			if (!debugLeft) indexData.push([topVertex, bottomVertex, nextTopVertex]);
+			if (!debugRight) indexData.push([bottomVertex, nextBottomVertex, nextTopVertex]);
 		}
 	}
 
@@ -4611,7 +4623,7 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	return indexData;
 });
 
-var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVerticesSelector, sunIndicesSelector, baseHeightSelector, faceIndicesSelector], function (sunVertices, sunIndices, baseHeight, faceIndices) {
+var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVerticesSelector, sunIndicesSelector, baseHeightSelector, bottomFaceIndicesSelector], function (sunVertices, sunIndices, baseHeight, bottomFaceIndices) {
 	var cells = sunIndices;
 	var mesh = new Mesh();
 	mesh.setPositions(sunVertices);
@@ -11752,8 +11764,6 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _preact = __webpack_require__(1);
@@ -11809,7 +11819,8 @@ var ListHeader = function (_Component) {
 		key: "handleStlClick",
 		value: function handleStlClick(e) {
 			var mesh = this.props.mesh;
-			lgp.fileWriter(this.props.fileName + ".stl", serializeStl({
+			//lgp.fileWriter(this.props.fileName+".stl", serializeStl( {
+			lgp.fileWriter(this.props.fileName + ".stl", lgp.stlSerializer({
 				positions: mesh.positions,
 				cells: mesh.cells
 			}));
@@ -11869,83 +11880,73 @@ function mapStateToProps(state, ownProps) {
 var ConnectedListHeader = (0, _preactRedux.connect)(mapStateToProps, actions)(ListHeader);
 exports.default = ConnectedListHeader;
 
-
-function serializeStl(input) {
-	// TODO: move or fix
-	if (input.constructor === Array) {
-		var output = "";
-		for (var i = 0; i < input.length; i++) {
-			output += serializeStlPrivate(input[0], i);
-		}
-		return output;
-	} else {
-		return serializeStlPrivate(input, 0);
-	}
-}
-
-function compatibleNumber(num) {
-	return num;
-}
-
-function serializeStlPrivate(input, index) {
-	if (input.positions === undefined || input.cells === undefined) {
-		throw "Input Not Valid: Does not contain any positions or cells";
-	}
-	//console.log("debugSerialize input:%s;",JSON.stringify(input));
-	var name = "";
-	var cells;
-	if (input.cells[0].constructor === Array) {
-		cells = normalize(input.cells);
-		//console.log("serializeStl normalize inputCells:%s;",JSON.stringify(cells));
-	} else {
-		cells = input.cells;
-		//console.log("serializeStl inputCells:%s;",JSON.stringify(cells));
-	}
-	var positions = input.positions;
-	if (_typeof(input.positions[0]) === Array || _typeof(input.positions[0]) === Float32Array) {
-		// eslint-disable-line no-undef
-		console.log("serializeStl normalize positions pre:%s;", JSON.stringify(input.positions));
-		positions = normalize(input.positions);
-		console.log("serializeStl normalize positions post:%s;", JSON.stringify(positions));
-	} else {
-		console.log("serializeStl positions:%s;", JSON.stringify(positions));
-	}
-
-	var normals = undefined;
-	if (input.normals !== undefined) {
-		console.log("input normals untested:%s;", JSON.stringify(input.normals));
-		normals = input.normals[0].constructor === Array ? normalize(input.normals) : input.normals;
-	} else {
-		normals = calculateNormals(positions, cells);
-	}
-	var i0, i1, i2; //, a, b, c;
-	var stl = "solid " + name + "\n";
-	for (var i = 0; i < cells.length; i += 3) {
-		i0 = cells[i] * 3;
-		i1 = cells[i + 1] * 3;
-		i2 = cells[i + 2] * 3;
-
-		if (Number.isNaN(normals[i])) {
-			normals[i] = 0;
-		}
-		if (Number.isNaN(normals[i + 1])) {
-			normals[i + 1] = 0;
-		}
-		if (Number.isNaN(normals[i + 2])) {
-			normals[i + 2] = 0;
-		}
-
-		stl += "  facet normal " + compatibleNumber(normals[i]) + " " + compatibleNumber(normals[i + 1]) + " " + compatibleNumber(normals[i + 2]) + "\n";
-		stl += "	outer loop\n";
-		stl += "	  vertex" + " " + compatibleNumber(positions[i0]) + " " + compatibleNumber(positions[i0 + 1]) + " " + compatibleNumber(positions[i0 + 2]) + "\n";
-		stl += "	  vertex" + " " + compatibleNumber(positions[i1]) + " " + compatibleNumber(positions[i1 + 1]) + " " + compatibleNumber(positions[i1 + 2]) + "\n";
-		stl += "	  vertex" + " " + compatibleNumber(positions[i2]) + " " + compatibleNumber(positions[i2 + 1]) + " " + compatibleNumber(positions[i2 + 2]) + "\n";
-		stl += "	endloop\n";
-		stl += "  endfacet\n";
-	}
-	stl += "endsolid\n";
-	return stl;
-}
+// function serializeStl( input ) { // TODO: move or fix
+// 	if( input.constructor === Array ) {
+// 		var output = "";
+// 		for( var i = 0; i < input.length; i++ ) {
+// 			output += serializeStlPrivate( input[ 0 ], i );
+// 		}
+// 		return output;
+// 	}
+// 	else {
+// 		return serializeStlPrivate( input, 0 );
+// 	}
+// }
+// 
+// function compatibleNumber(num) {
+// 	return num;
+// }
+// 
+// function serializeStlPrivate( input, index ) {
+// 	if( input.positions === undefined || input.cells === undefined ) {
+// 		throw "Input Not Valid: Does not contain any positions or cells";
+// 	}
+// 	var name = "";
+// 	var cells;
+// 	if (input.cells[ 0 ].constructor === Array) {
+// 		cells = normalize( input.cells );
+// 	} else {
+// 		cells = input.cells;
+// 	}
+// 	var positions = input.positions;
+// 	if (typeof input.positions[0] === Array || typeof input.positions[0] === Float32Array) { // eslint-disable-line no-undef
+// 		positions = normalize( input.positions );
+// 	}
+// 
+// 	var normals = undefined;
+// 	if( input.normals !== undefined ) {
+// 		normals = input.normals[0].constructor === Array ? normalize( input.normals ) : input.normals;
+// 	} else {
+// 		normals = calculateNormals( positions, cells );
+// 	}
+// 	var i0, i1, i2;//, a, b, c;
+// 	var stl = "solid " + name + "\n";
+// 	for( var i = 0; i < cells.length; i += 3 ) {
+// 		i0 = cells[ i ] * 3;
+// 		i1 = cells[ i + 1 ] * 3;
+// 		i2 = cells[ i + 2 ] * 3;
+// 
+// 		if (Number.isNaN(normals[i])) {
+// 			normals[i] = 0;
+// 		}
+// 		if (Number.isNaN(normals[i+1])) {
+// 			normals[i+1] = 0;
+// 		}
+// 		if (Number.isNaN(normals[i+2])) {
+// 			normals[i+2] = 0;
+// 		}
+// 		
+// 		stl += "  facet normal " + compatibleNumber(normals[ i ]) + " " + compatibleNumber(normals[ i + 1 ]) + " " + compatibleNumber(normals[ i + 2 ]) + "\n";
+// 		stl += "	outer loop\n";
+// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i0 ]) + " " + compatibleNumber(positions[ i0 + 1 ]) + " " + compatibleNumber(positions[ i0 + 2 ]) + "\n";
+// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i1 ]) + " " + compatibleNumber(positions[ i1 + 1 ]) + " " + compatibleNumber(positions[ i1 + 2 ]) + "\n";
+// 		stl += "	  vertex" + " " + compatibleNumber(positions[ i2 ]) + " " + compatibleNumber(positions[ i2 + 1 ]) + " " +compatibleNumber(positions[ i2 + 2 ]) + "\n";
+// 		stl += "	endloop\n";
+// 		stl += "  endfacet\n";
+// 	}
+// 	stl += ("endsolid\n");
+// 	return stl;
+// }
 
 /***/ }),
 /* 81 */
@@ -13241,15 +13242,59 @@ Object.defineProperty(exports, "__esModule", {
 exports.startTrackball = startTrackball;
 exports.rollToTrackball = rollToTrackball;
 exports.addToRotationTrackball = addToRotationTrackball;
-// From the old Apple demo code GLSLEditorSample trackball.c
+/*
+    trackball.c
+
+	Copyright:	Copyright © 2002-2003 Apple Computer, Inc., All Rights Reserved
+
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Computer, Inc. ("Apple") in consideration of your agreement to the
+ following terms, and your use, installation, modification or
+ redistribution of this Apple software constitutes acceptance of these
+ terms.  If you do not agree with these terms, please do not use,
+ install, modify or redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software. 
+ Neither the name, trademarks, service marks or logos of Apple Computer,
+ Inc. may be used to endorse or promote products derived from the Apple
+ Software without specific prior written permission from Apple.  Except
+ as expressly stated in this notice, no other rights or licenses, express
+ or implied, are granted by Apple herein, including but not limited to
+ any patent rights that may be infringed by your derivative works or by
+ other works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+ *
+ */
 
 var kTol = 0.001;
 var kRad2Deg = 180.0 / Math.PI;
 var kDeg2Rad = Math.PI / 180.;
 
 var gRadiusTrackball = void 0;
-var gStartPtTrackball = [0, 0, 0]; // 3
-var gEndPtTrackball = [0, 0, 0]; // 3
+var gStartPtTrackball = [0, 0, 0];
+var gEndPtTrackball = [0, 0, 0];
 var gXCenterTrackball = 0;
 var gYCenterTrackball = 0;
 
@@ -13287,20 +13332,8 @@ function startTrackball(x, y, originX, originY, width, height) {
 // update to new mouse position, output rotation angle
 function rollToTrackball(x, y, rot) {
 	// rot is output rotation angle
-	//console.log("rollToTrackball x:%s; y:%s; rot:%s;",x,y,JSON.stringify(rot));
-	//console.log("pre:%s;",JSON.stringify(rot));
-	//var rot = [0,0,0,0];
-	//console.log("center x:%s; y:%s;",gXCenterTrackball,gYCenterTrackball);
-	//console.log("startPt x:%s; y:%s;",gStartPtTrackball[0],gStartPtTrackball[1]);
-	//console.log("endPt x:%s; y:%s;",gEndPtTrackball[0],gEndPtTrackball[1]);
-
-	//console.log("*** rollToTrackball pre:%s;",JSON.stringify(rot));
-
 	gEndPtTrackball[0] = x - gXCenterTrackball;
 	gEndPtTrackball[1] = y - gYCenterTrackball;
-
-	//console.log("start x:%s; y:%s; end x:%s; y:%s;",gStartPtTrackball[0],gStartPtTrackball[1],gEndPtTrackball[0],gEndPtTrackball[1]);
-
 	if (Math.abs(gEndPtTrackball[0] - gStartPtTrackball[0]) < kTol && Math.abs(gEndPtTrackball[1] - gStartPtTrackball[1]) < kTol) return; // Not enough change in the vectors to have an action.
 
 	// Compute the ending vector from the surface of the ball to its center.
@@ -13311,7 +13344,6 @@ function rollToTrackball(x, y, rot) {
 	} else {
 		gEndPtTrackball[2] = Math.sqrt(gRadiusTrackball * gRadiusTrackball - xxyy);
 	}
-	//console.log("mid a:%s;",JSON.stringify(rot));
 
 	// Take the cross product of the two vectors. r = s X e
 	rot[1] = -gStartPtTrackball[1] * gEndPtTrackball[2] + gStartPtTrackball[2] * gEndPtTrackball[1];
@@ -13321,15 +13353,7 @@ function rollToTrackball(x, y, rot) {
 	// Use atan for a better angle.  If you use only cos or sin, you only get
 	// half the possible angles, and you can end up with rotations that flip around near
 	// the poles.
-	//console.log("mid b:%s;",JSON.stringify(rot));
 	// cos(a) = (s . e) / (||s|| ||e||)
-
-	// 	let ls = Math.sqrt(gStartPtTrackball[0] * gStartPtTrackball[0] + gStartPtTrackball[1] * gStartPtTrackball[1] + gStartPtTrackball[2] * gStartPtTrackball[2]);
-	// 	if (ls) ls = 1 / ls; // 1 / ||s||
-	// 	let le = Math.sqrt(gEndPtTrackball[0] * gEndPtTrackball[0] + gEndPtTrackball[1] * gEndPtTrackball[1] + gEndPtTrackball[2] * gEndPtTrackball[2]);
-	// 	if (le) le = 1 / le; // 1 / ||e||
-	// 	const cosAng = gStartPtTrackball[0] * gEndPtTrackball[0] + gStartPtTrackball[1] * gEndPtTrackball[1] + gStartPtTrackball[2] * gEndPtTrackball[2] * ls * le;
-
 
 	var cosAng = gStartPtTrackball[0] * gEndPtTrackball[0] + gStartPtTrackball[1] * gEndPtTrackball[1] + gStartPtTrackball[2] * gEndPtTrackball[2]; // (s . e)
 	var ls = Math.sqrt(gStartPtTrackball[0] * gStartPtTrackball[0] + gStartPtTrackball[1] * gStartPtTrackball[1] + gStartPtTrackball[2] * gStartPtTrackball[2]);
@@ -13337,17 +13361,12 @@ function rollToTrackball(x, y, rot) {
 	var le = Math.sqrt(gEndPtTrackball[0] * gEndPtTrackball[0] + gEndPtTrackball[1] * gEndPtTrackball[1] + gEndPtTrackball[2] * gEndPtTrackball[2]);
 	if (le) le = 1.0 / le; // 1 / ||e||
 	cosAng = cosAng * ls * le;
-	//console.log("mid c:%s;",JSON.stringify(rot));
 
 	// sin(a) = ||(s X e)|| / (||s|| ||e||)
 	var lr = Math.sqrt(rot[1] * rot[1] + rot[2] * rot[2] + rot[3] * rot[3]); // ||(s X e)||;
 	// keep this length in lr for normalizing the rotation vector later.
-	//console.log("lr:%s; ls:%s; le:%s;",lr,ls,le);
 	var sinAng = lr * ls * le;
-	//console.log("sinAng:%s;",sinAng);
 	rot[0] = Math.atan2(sinAng, cosAng) * kRad2Deg; // GL rotations are in degrees.
-	//console.log("mid d:%s;",JSON.stringify(rot));
-	//console.log("sin:%s; cos:%s; const:%s; result:%s;",sinAng,cosAng,kRad2Deg,rot[0]);
 
 	// Normalize the rotation axis.
 	if (lr) lr = 1 / lr;
@@ -13355,9 +13374,6 @@ function rollToTrackball(x, y, rot) {
 	rot[2] *= lr;
 	rot[3] *= lr;
 
-	//console.log("*** rollToTrackball result:%s;",JSON.stringify(rot));
-
-	// returns rotate
 	return rot;
 }
 
@@ -13398,17 +13414,10 @@ function addToRotationTrackball(dA, A) {
 	// So, if the cosine of the half-angle is one (or, 1.0 within our tolerance),
 	// then you have an identity rotation.
 	//const tolerance = 1.0e-7;
-	//console.log("addToRotation Q 0:%s; 1:%s; 2:%s; 3:%s;",q2[0],q2[1],q2[2],q2[3]);
-	// addToRotation Q 0:0.001764; 1:0.000001; 2:-0.000025; 3:0.999998;
-	// addToRotation Q 0:-0.627184; 1:-0.006311; 2:0.008951; 3:0.778794;
-
-	// addToRotation Q 0:-0.00010275132114833697; 1:-1.2122695925889403e-8; 2:0.000001193072591482393; 3:0.9999999947203712;
-	// addToRotation Q 0:-0.999627808703512; 1:0.022560026840971574; 2:0.015338682007079734; 3:0.00011870061204220369;
 
 	var tolerance = 0.0000001;
 	var testValue = Math.abs(q2[3] - 1.0);
 	if (testValue < tolerance) {
-		//console.log("????? addToRotationTrackball IDENTITY:%s;",testValue);
 		// Identity rotation.
 		A[0] = 0.0;
 		A[1] = 1.0;
@@ -13428,7 +13437,6 @@ function addToRotationTrackball(dA, A) {
 	A[1] = q2[0] * sinTheta2;
 	A[2] = q2[1] * sinTheta2;
 	A[3] = q2[2] * sinTheta2;
-	//console.log("????? addToRotation result:%s;",JSON.stringify(A));
 
 	// 	dA[0] = 0.0;
 	// 	dA[1] = 0.0;

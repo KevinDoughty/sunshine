@@ -1,12 +1,56 @@
-// From the old Apple demo code GLSLEditorSample trackball.c
+/*
+    trackball.c
+
+	Copyright:	Copyright © 2002-2003 Apple Computer, Inc., All Rights Reserved
+
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Computer, Inc. ("Apple") in consideration of your agreement to the
+ following terms, and your use, installation, modification or
+ redistribution of this Apple software constitutes acceptance of these
+ terms.  If you do not agree with these terms, please do not use,
+ install, modify or redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software. 
+ Neither the name, trademarks, service marks or logos of Apple Computer,
+ Inc. may be used to endorse or promote products derived from the Apple
+ Software without specific prior written permission from Apple.  Except
+ as expressly stated in this notice, no other rights or licenses, express
+ or implied, are granted by Apple herein, including but not limited to
+ any patent rights that may be infringed by your derivative works or by
+ other works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+ *
+ */
 
 const  kTol = 0.001;
 const kRad2Deg = 180.0 / Math.PI;
 const kDeg2Rad = Math.PI / 180.;
 
 let gRadiusTrackball;
-let gStartPtTrackball = [0,0,0]; // 3
-let gEndPtTrackball = [0,0,0]; // 3
+let gStartPtTrackball = [0,0,0];
+let gEndPtTrackball = [0,0,0];
 let gXCenterTrackball = 0;
 let gYCenterTrackball = 0;
 
@@ -44,20 +88,8 @@ export function startTrackball(x, y, originX, originY, width, height) {
 	
 // update to new mouse position, output rotation angle
 export function rollToTrackball(x,y, rot) { // rot is output rotation angle
-	//console.log("rollToTrackball x:%s; y:%s; rot:%s;",x,y,JSON.stringify(rot));
-	//console.log("pre:%s;",JSON.stringify(rot));
-	//var rot = [0,0,0,0];
-	//console.log("center x:%s; y:%s;",gXCenterTrackball,gYCenterTrackball);
-	//console.log("startPt x:%s; y:%s;",gStartPtTrackball[0],gStartPtTrackball[1]);
-	//console.log("endPt x:%s; y:%s;",gEndPtTrackball[0],gEndPtTrackball[1]);
-	
-	//console.log("*** rollToTrackball pre:%s;",JSON.stringify(rot));
-	
 	gEndPtTrackball[0] = x - gXCenterTrackball;
 	gEndPtTrackball[1] = y - gYCenterTrackball;
-
-	//console.log("start x:%s; y:%s; end x:%s; y:%s;",gStartPtTrackball[0],gStartPtTrackball[1],gEndPtTrackball[0],gEndPtTrackball[1]);
-
 	if (Math.abs (gEndPtTrackball[0] - gStartPtTrackball[0]) < kTol && Math.abs(gEndPtTrackball[1] - gStartPtTrackball[1]) < kTol) return; // Not enough change in the vectors to have an action.
 
 	// Compute the ending vector from the surface of the ball to its center.
@@ -67,7 +99,6 @@ export function rollToTrackball(x,y, rot) { // rot is output rotation angle
 	} else {
 		gEndPtTrackball[2] = Math.sqrt(gRadiusTrackball * gRadiusTrackball - xxyy);
 	}
-	//console.log("mid a:%s;",JSON.stringify(rot));
 
 	// Take the cross product of the two vectors. r = s X e
 	rot[1] = -gStartPtTrackball[1] * gEndPtTrackball[2] + gStartPtTrackball[2] * gEndPtTrackball[1];
@@ -77,15 +108,7 @@ export function rollToTrackball(x,y, rot) { // rot is output rotation angle
 	// Use atan for a better angle.  If you use only cos or sin, you only get
 	// half the possible angles, and you can end up with rotations that flip around near
 	// the poles.
-	//console.log("mid b:%s;",JSON.stringify(rot));
 	// cos(a) = (s . e) / (||s|| ||e||)
-	
-// 	let ls = Math.sqrt(gStartPtTrackball[0] * gStartPtTrackball[0] + gStartPtTrackball[1] * gStartPtTrackball[1] + gStartPtTrackball[2] * gStartPtTrackball[2]);
-// 	if (ls) ls = 1 / ls; // 1 / ||s||
-// 	let le = Math.sqrt(gEndPtTrackball[0] * gEndPtTrackball[0] + gEndPtTrackball[1] * gEndPtTrackball[1] + gEndPtTrackball[2] * gEndPtTrackball[2]);
-// 	if (le) le = 1 / le; // 1 / ||e||
-// 	const cosAng = gStartPtTrackball[0] * gEndPtTrackball[0] + gStartPtTrackball[1] * gEndPtTrackball[1] + gStartPtTrackball[2] * gEndPtTrackball[2] * ls * le;
-
 
 	let cosAng = gStartPtTrackball[0] * gEndPtTrackball[0] + gStartPtTrackball[1] * gEndPtTrackball[1] + gStartPtTrackball[2] * gEndPtTrackball[2]; // (s . e)
 	let ls = Math.sqrt(gStartPtTrackball[0] * gStartPtTrackball[0] + gStartPtTrackball[1] * gStartPtTrackball[1] + gStartPtTrackball[2] * gStartPtTrackball[2]);
@@ -93,27 +116,19 @@ export function rollToTrackball(x,y, rot) { // rot is output rotation angle
 	let le = Math.sqrt(gEndPtTrackball[0] * gEndPtTrackball[0] + gEndPtTrackball[1] * gEndPtTrackball[1] + gEndPtTrackball[2] * gEndPtTrackball[2]);
 	if (le) le = 1.0 / le; // 1 / ||e||
 	cosAng = cosAng * ls * le;
-	//console.log("mid c:%s;",JSON.stringify(rot));
-	
+
 	// sin(a) = ||(s X e)|| / (||s|| ||e||)
 	let lr = Math.sqrt(rot[1] * rot[1] + rot[2] * rot[2] + rot[3] * rot[3]); // ||(s X e)||;
-								// keep this length in lr for normalizing the rotation vector later.
-	//console.log("lr:%s; ls:%s; le:%s;",lr,ls,le);
+	// keep this length in lr for normalizing the rotation vector later.
 	const sinAng = lr * ls * le;
-	//console.log("sinAng:%s;",sinAng);
 	rot[0] = Math.atan2(sinAng, cosAng) * kRad2Deg; // GL rotations are in degrees.
-	//console.log("mid d:%s;",JSON.stringify(rot));
-	//console.log("sin:%s; cos:%s; const:%s; result:%s;",sinAng,cosAng,kRad2Deg,rot[0]);
-	
+
 	// Normalize the rotation axis.
 	if (lr) lr = 1 / lr;
 	rot[1] *= lr;
 	rot[2] *= lr;
 	rot[3] *= lr;
-	
-	//console.log("*** rollToTrackball result:%s;",JSON.stringify(rot));
-	
-	// returns rotate
+
 	return rot;
 }
 
@@ -152,17 +167,10 @@ export function addToRotationTrackball(dA, A) {
 	// So, if the cosine of the half-angle is one (or, 1.0 within our tolerance),
 	// then you have an identity rotation.
 	//const tolerance = 1.0e-7;
-	//console.log("addToRotation Q 0:%s; 1:%s; 2:%s; 3:%s;",q2[0],q2[1],q2[2],q2[3]);
-	// addToRotation Q 0:0.001764; 1:0.000001; 2:-0.000025; 3:0.999998;
-	// addToRotation Q 0:-0.627184; 1:-0.006311; 2:0.008951; 3:0.778794;
-	
-	// addToRotation Q 0:-0.00010275132114833697; 1:-1.2122695925889403e-8; 2:0.000001193072591482393; 3:0.9999999947203712;
-	// addToRotation Q 0:-0.999627808703512; 1:0.022560026840971574; 2:0.015338682007079734; 3:0.00011870061204220369;
 	
 	const tolerance = 0.0000001;
 	const testValue = Math.abs(q2[3] - 1.0);
 	if (testValue < tolerance) {
-		//console.log("????? addToRotationTrackball IDENTITY:%s;",testValue);
 		// Identity rotation.
 		A[0] = 0.0;
 		A[1] = 1.0;
@@ -182,7 +190,6 @@ export function addToRotationTrackball(dA, A) {
 	A[1] = q2[0] * sinTheta2;
 	A[2] = q2[1] * sinTheta2;
 	A[3] = q2[2] * sinTheta2;
-	//console.log("????? addToRotation result:%s;",JSON.stringify(A));
 	
 // 	dA[0] = 0.0;
 // 	dA[1] = 0.0;
