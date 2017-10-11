@@ -53,6 +53,7 @@ const x1Selector = createSelector([settingsSelector], settings => settings.x1 * 
 const y1Selector = createSelector([settingsSelector], settings => settings.y1 * 1);
 const useFlameBezierSelector = createSelector([settingsSelector], settings => settings.useFlameBezier);
 const flatTopSelector = createSelector([settingsSelector], settings => settings.flatTop);
+const splitBeamsSelector = createSelector([settingsSelector], settings => settings.splitBeams);
 const debugLeftSelector = createSelector([settingsSelector], settings => settings.debugLeft);
 const debugRightSelector = createSelector([settingsSelector], settings => settings.debugRight);
 const debugTopSelector = createSelector([settingsSelector], settings => settings.debugTop);
@@ -259,8 +260,7 @@ const bottomFaceIndicesSelector = createSelector(
 		const tips = anchor + 1;
 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
-		const lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
-		const firstBeamEndsStart = lastEdgeStart;
+		const firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
 
 		bottomFaceIndices.push(anchor);
@@ -423,8 +423,7 @@ const sunVerticesSelector = createSelector(
 		const tips = anchor + 1;
 // 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 // 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
-// 		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
-// 		const firstBeamEndsStart = lastEdgeStart;
+// 		const firstBeamEndsStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
 // 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
 
 // BEAM SEGMENT VERTICES
@@ -586,10 +585,9 @@ const sunIndicesSelector = createSelector(
 		const tips = anchor + 1;
 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
-		const lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
-		const firstBeamEndsStart = lastEdgeStart;
+		const firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
-		const pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+		const pedestalStart = sphereFraction === "whole" ? firstBeamEndsStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
 
 		for (let i=0; i<rings; i++) { // the cap
 			for (let j=0; j<slices; j++) {

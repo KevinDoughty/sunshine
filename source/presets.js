@@ -26,7 +26,6 @@ const flameBezierValues = [
 // const notImplemented = [
 // 	{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false },
 // 	{ "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 },
-// 	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true},
 // 	{ "id": "flatTop", "displayName": "Flat Top", "type": "bool",  "default": true }
 // ];
 
@@ -39,7 +38,8 @@ const beam = [
 	{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 3 }, // <---
 	{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 },
 	{ "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true},
-	{ "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues }
+	{ "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues },
+	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true},
 	//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
 ];
 

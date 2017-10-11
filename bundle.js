@@ -3885,6 +3885,9 @@ var useFlameBezierSelector = (0, _reselect.createSelector)([settingsSelector], f
 var flatTopSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.flatTop;
 });
+var splitBeamsSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.splitBeams;
+});
 var debugLeftSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.debugLeft;
 });
@@ -4083,8 +4086,7 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 	var tips = anchor + 1;
 	var extraFancyStart = (rings + intersectionAreaRings + 1) * (slices + 1) + 1 + fullBeamCount + 1;
 	var lastEdgeCount = Math.floor((slices + per) / (per * 2));
-	var lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
-	var firstBeamEndsStart = lastEdgeStart;
+	var firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
 	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
 
 	bottomFaceIndices.push(anchor);
@@ -4249,8 +4251,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 	var tips = anchor + 1;
 	// 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 	// 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
-	// 		const lastEdgeStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
-	// 		const firstBeamEndsStart = lastEdgeStart;
+	// 		const firstBeamEndsStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
 	// 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
 
 	// BEAM SEGMENT VERTICES
@@ -4391,10 +4392,9 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 	var tips = anchor + 1;
 	var extraFancyStart = (rings + intersectionAreaRings + 1) * (slices + 1) + 1 + fullBeamCount + 1;
 	var lastEdgeCount = Math.floor((slices + per) / (per * 2));
-	var lastEdgeStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
-	var firstBeamEndsStart = lastEdgeStart;
+	var firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices + 1) * beamLengthVertexCount * 2;
 	var lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
-	var pedestalStart = sphereFraction === "whole" ? lastEdgeStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+	var pedestalStart = sphereFraction === "whole" ? firstBeamEndsStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
 
 	for (var i = 0; i < rings; i++) {
 		// the cap
@@ -12907,15 +12907,12 @@ var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "ra
 // const notImplemented = [
 // 	{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false },
 // 	{ "id": "beamGap", "displayName": "Beam gap", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.0 },
-// 	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true},
 // 	{ "id": "flatTop", "displayName": "Flat Top", "type": "bool",  "default": true }
 // ];
 
 var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[0] }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 3 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues
-	//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
-}];
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];
 
