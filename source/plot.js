@@ -23,7 +23,6 @@ const quarter = half / 2;
 //const d2r = Math.PI / 180; // debug
 //const r2d = 180 / Math.PI; // debug
 
-
 export const settingsSelector = createSelector(
 	[normalizedTreeDictSelector],
 	(normalizedTreeDict) => {
@@ -54,6 +53,7 @@ const y1Selector = createSelector([settingsSelector], settings => settings.y1 * 
 const useFlameBezierSelector = createSelector([settingsSelector], settings => settings.useFlameBezier);
 const flatTopSelector = createSelector([settingsSelector], settings => settings.flatTop);
 const splitBeamsSelector = createSelector([settingsSelector], settings => settings.splitBeams);
+
 const debugLeftSelector = createSelector([settingsSelector], settings => settings.debugLeft);
 const debugRightSelector = createSelector([settingsSelector], settings => settings.debugRight);
 const debugTopSelector = createSelector([settingsSelector], settings => settings.debugTop);
@@ -62,6 +62,7 @@ const debugEvenSelector = createSelector([settingsSelector], settings => setting
 const debugOddSelector = createSelector([settingsSelector], settings => settings.debugOdd);
 const debugFirstSelector = createSelector([settingsSelector], settings => settings.debugFirst);
 const debugLastSelector = createSelector([settingsSelector], settings => settings.debugLast);
+const debugUnderSelector = createSelector([settingsSelector], settings => settings.debugUnder);
 
 const sunRadiusSelector = createSelector(
 	[radiusSelector, horizonRatioSelector],
@@ -249,8 +250,8 @@ const beamLengthVertexCountSelector = createSelector(
 
 
 const bottomFaceIndicesSelector = createSelector(
-	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, beamLengthVertexCountSelector],
-	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, beamLengthVertexCount) => {
+	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, beamLengthVertexCountSelector, splitBeamsSelector],
+	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, beamLengthVertexCount, splitBeams) => {
 
 		const bottomFaceIndices = [];
 		const divisions = fullBeamCount * 2;
@@ -263,64 +264,59 @@ const bottomFaceIndicesSelector = createSelector(
 		const firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
 
-		bottomFaceIndices.push(anchor);
+		if (sphereFraction !== "whole") { // first beam ends
 
-		if (sphereFraction !== "whole") { // first beam ends // needed after all?
+			bottomFaceIndices.push(anchor);
+
 			const firstRoot = (rings + intersectionAreaRings) * (slices + 1);
 			bottomFaceIndices.push(firstRoot);
-			//const location = firstBeamEndsStart;
-			const location = extraFancyStart + beamLengthVertexCount;
-			const midFirst = location;
-			bottomFaceIndices.push(midFirst);
-			for (let a=1; a<beamLengthVertexCount; a++) {
-				const nextFirst = location + a;
-				bottomFaceIndices.push(nextFirst);
+			if (splitBeams) {
+				//const location = extraFancyStart + beamLengthVertexCount;
+				const location = firstBeamEndsStart + (intersectionAreaRings - 1) * beamLengthVertexCount;
+				for (let a=1; a<beamLengthVertexCount; a++) {
+					const nextVertex = location + a;
+					bottomFaceIndices.push(nextVertex);
+				}
 			}
 		}
 
 		if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
-			const larger = j % (per * 2);
+			const larger = !splitBeams ? (j + per) % (per * 2) : j % (per * 2);
 			const smaller = j % per;
 			let i = smaller;
 			const division = Math.floor( j / per );
-			const tipNumber = Math.ceil( division / 2 ) ;
+			const tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			const tipIndex = tips + tipNumber;
-			const isLastEdge = !((j + 1 + per) % (per * 2));
-			const notLastEdge = (j + 1 + per) % (per * 2);
-			//const notBeamValley = (j + per) % (per * 2);
-			const isBeamValley = !((j + per) % (per * 2));
+			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
+			const notLastEdge = !isLastEdgeBeforeBeamValley;
+			const isBeamValley = !splitBeams ? !(j % (per * 2)) : !((j + per) % (per * 2));
 			if (larger < per) {
-				const additional = Math.floor((j + per) / (per * 2));
-				const slice = j + additional;
-				
-				let location = extraFancyStart;
-				let nextLocation = location;
-				let nextSlice = slice+1;
-				let nextLevel = (nextSlice * beamLengthVertexCount * 2);
-				const midSecond = nextLocation + nextLevel;
-				if (isLastEdge) {
-					bottomFaceIndices.push(tipIndex);
+				if (isLastEdgeBeforeBeamValley) {
+					const additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
+					const slice = j + additionalDueToBeamValleysHavingTwoLines;
+					let location = extraFancyStart;
+					let nextLocation = location;
+					let nextSlice = slice+1;
+					let nextLevel = (nextSlice * beamLengthVertexCount * 2);
 					let a = beamLengthVertexCount;
-					while (--a) {
+					while (a--) {
 						const nextSecond = nextLocation + nextLevel + a;
 						bottomFaceIndices.push(nextSecond);
 					}
-					bottomFaceIndices.push(midSecond);
 				}
 			}
 
 			if (larger >= per) {
-				if (notLastEdge) i = per - i;
-				const slice = j + Math.floor((j + per) / (per * 2));
-				let location = extraFancyStart;
-				let level = (slice * beamLengthVertexCount * 2);
-				const k = (rings+intersectionAreaRings) * (slices + 1);
-				const underOne = k + j;
-				const midFirst = location + level;
-				if (isBeamValley) {
-					bottomFaceIndices.push(underOne);
-					bottomFaceIndices.push(midFirst);
-					for (let a=1; a<beamLengthVertexCount; a++) {
+				if (isBeamValley) {// && (splitBeams || j > 0)) {
+					if (notLastEdge) i = per - i;
+					const additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
+					const slice = j + additionalDueToBeamValleysHavingTwoLines;
+					let location = extraFancyStart;
+					let level = (slice * beamLengthVertexCount * 2);
+					const k = (rings+intersectionAreaRings) * (slices + 1);
+					const twoRoot = k + j;
+					bottomFaceIndices.push(twoRoot);
+					for (let a=0; a<beamLengthVertexCount; a++) {
 						const nextFirst = location + level + a;
 						bottomFaceIndices.push(nextFirst);
 					}
@@ -328,21 +324,21 @@ const bottomFaceIndicesSelector = createSelector(
 			}
 		}
 
-		if (sphereFraction !== "whole") { // last beam ends // needed after all?
-			//const location = lastBeamEndsStart;
-			const location = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount;
-			let a = beamLengthVertexCount;
-			while (--a) {
-				const nextFirst = location + a;
-				bottomFaceIndices.push(nextFirst);
+		if (sphereFraction !== "whole") { // last beam ends
+			if (splitBeams) {
+				//const location = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount;
+				const location = lastBeamEndsStart + (intersectionAreaRings - 1) * beamLengthVertexCount;
+				let a = beamLengthVertexCount;
+				while (--a) {
+					const nextVertex = location + a;
+					bottomFaceIndices.push(nextVertex);
+				}
 			}
-			const midFirst = location;
-			bottomFaceIndices.push(midFirst);
 			const lastRoot = (rings + intersectionAreaRings) * (slices + 1) + slices;
 			bottomFaceIndices.push(lastRoot);
+			bottomFaceIndices.push(anchor);
 		}
 
-		bottomFaceIndices.push(anchor);
 		return bottomFaceIndices;
 	}
 );
@@ -370,8 +366,8 @@ function lengthOfEdge(firstPoint, tipPoint) {
 }
 
 const sunVerticesSelector = createSelector(
-	[ringsSelector,slicesSelector,sliceDeltaSelector,sunRadiusSelector,sunHeightSelector,ringDeltaTopSelector,beamFullTopThetaSelector,beamThetaArraySelector,fullBeamCountSelector,arcRadiansSelector,radiusSelector,sphereFractionSelector,baseHeightSelector,bottomFaceIndicesSelector,x0Selector,y0Selector,x1Selector,y1Selector,useFlameBezierSelector, beamLengthVertexCountSelector],
-	(rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount,arcRadians,radius,sphereFraction,baseHeight,bottomFaceIndices,x0,y0,x1,y1,useFlameBezier,beamLengthVertexCount) => {
+	[ringsSelector,slicesSelector,sliceDeltaSelector,sunRadiusSelector,sunHeightSelector,ringDeltaTopSelector,beamFullTopThetaSelector,beamThetaArraySelector,fullBeamCountSelector,arcRadiansSelector,radiusSelector,sphereFractionSelector,baseHeightSelector,bottomFaceIndicesSelector,x0Selector,y0Selector,x1Selector,y1Selector,useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector],
+	(rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount,arcRadians,radius,sphereFraction,baseHeight,bottomFaceIndices,x0,y0,x1,y1,useFlameBezier,beamLengthVertexCount, splitBeams) => {
 		const vertexData = [];
 		for (let i=0; i<rings; i++) { // latitude // stacked layers // the cap
 			const theta = i * ringDeltaTop; // need two passes, above beam top and below beam top.
@@ -410,7 +406,7 @@ const sunVerticesSelector = createSelector(
 // BEAM TIP VERTICES
 		const tipCount = fullBeamCount+1;
 		for (let i = 0; i < tipCount; i++) { // points
-			const a = i / fullBeamCount * arcRadians;
+			const a = i / fullBeamCount * arcRadians + (splitBeams ? 0 : 1 / fullBeamCount * arcRadians * 0.5);
 			const x = Math.cos(a) * radius;
 			const y = Math.sin(a) * radius;
 			vertexData.push([x, y, 0]);
@@ -421,34 +417,44 @@ const sunVerticesSelector = createSelector(
 		const per = slices / divisions;
 		const anchor = (rings+intersectionAreaRings+1) * (slices+1);
 		const tips = anchor + 1;
+
+// DEBUG:
 // 		const extraFancyStart = (rings+intersectionAreaRings+1) * (slices+1) + 1 + fullBeamCount + 1;
 // 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
 // 		const firstBeamEndsStart = lastEdgeCount * per * 2 + extraFancyStart + (slices+1) * per * 2;
 // 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * per;
+// 		const firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
+// 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+// 		const pedestalStart = (sphereFraction === "whole" || !splitBeams) ? firstBeamEndsStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+// 		const sunUndersideStart = (fakeExtrude && baseHeight > 0) ? pedestalStart + bottomFaceIndices.length : (rings+intersectionAreaRings) * (slices + 1);
+// 		const underAnchorLoc = sunUndersideStart + slices + 1;
 
 // BEAM SEGMENT VERTICES
 		if (extraFancy) for (let j=0; j<=slices; j++) { // new beam segment vertices
-			const larger = j % (per * 2);
+
+			const larger = !splitBeams ? (j + per) % (per * 2) : j % (per * 2);
 			const smaller = j % per;
 			let i = smaller;
 			const division = Math.floor( j / per );
-			let tipNumber = Math.ceil( division / 2 );
+			let tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			let tipIndex = tips + tipNumber;
+			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
 			let tipPoint = vertexData[tipIndex];
-			const isLastEdge = (!((j + 1 + per) % (per * 2)) && j < slices);
+
 			let pedestal = 0;
 			if (fakeExtrude && baseHeight > 0) pedestal = -baseHeight;
 			if (larger < per) {
 				const firstRoot = (rings + i) * (slices + 1) + j;
 				const firstPoint = vertexData[firstRoot];
-				const beamSlice = tipNumber*per*2;
+				const beamSlice = !splitBeams ? tipNumber*per*2+per : tipNumber*per*2;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
+				const isEndPiece = splitBeams && (beamSlice === j || j === slices);
+				const isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? (beamSlice === j && j < slices) : (beamSlice === j + per && j < slices));
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
 					const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
 					const regular = [x,y];
-					const isEndPiece = beamSlice === j || j === slices;
-					const value = (isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1);
+					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1);
 					vertexData.push([
 						(useFlameBezier ? value[0] : x),
 						(useFlameBezier ? value[1] : y),
@@ -463,8 +469,7 @@ const sunVerticesSelector = createSelector(
 					const x = (onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount);
 					const y = (onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount);
 					const regular = [x,y];
-					const isEndPiece = beamSlice === j || j === slices;
-					const value = (isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1);
+					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1);
 					vertexData.push([
 						(useFlameBezier ? value[0] : x),
 						(useFlameBezier ? value[1] : y),
@@ -473,13 +478,13 @@ const sunVerticesSelector = createSelector(
 				}
 			}
 
-			if (larger >= per || isLastEdge) { // isLastEdge to sneak in one more set of vertices
+			if (larger >= per || (isLastEdgeBeforeBeamValley && j < slices)) { // isLastEdgeBeforeBeamValley to sneak in one more set of vertices
 				let slice = j;
 				let direction = -1;
-				if (isLastEdge) { // last edge of the new beam segments
+				if (isLastEdgeBeforeBeamValley) { // last edge of the new beam segments
 					slice++;
 					i++;
-					tipNumber = Math.ceil( division / 2 );
+					tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 					tipIndex = tips + tipNumber;
 					tipPoint = vertexData[tipIndex];
 					direction = 1;
@@ -489,12 +494,14 @@ const sunVerticesSelector = createSelector(
 				const firstRoot = (rings + i) * (slices + 1) + slice;
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = tipNumber*per*2;
+				const isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
+				const isEndPiece = splitBeams && (beamSlice === j || j === slices);
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
 					const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
 					const regular = [x,y];
-					const value = (beamSlice === j && j < slices) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction);
+					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction);
 					vertexData.push([
 						useFlameBezier ? value[0] : x,
 						useFlameBezier ? value[1] : y,
@@ -509,7 +516,7 @@ const sunVerticesSelector = createSelector(
 					const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
 					const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
 					const regular = [x,y];
-					const value = (beamSlice === j && j < slices) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction);
+					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction);
 					vertexData.push([
 						useFlameBezier ? value[0] : x,
 						useFlameBezier ? value[1] : y,
@@ -519,7 +526,7 @@ const sunVerticesSelector = createSelector(
 			}
 		}
 
-		if (extraFancy && sphereFraction !== "whole") for (let i=1; i<intersectionAreaRings+1; i++) { // beam ends
+		if (extraFancy && sphereFraction !== "whole" && splitBeams) for (let i=1; i<intersectionAreaRings+1; i++) { // beam ends
 			const firstRoot = (rings + i) * (slices + 1);
 			const endPoint = vertexData[firstRoot];
 			const tipPoint = vertexData[ tips ];
@@ -532,7 +539,7 @@ const sunVerticesSelector = createSelector(
 			}
 		}
 
-		if (extraFancy && sphereFraction !== "whole") for (let i=1; i<intersectionAreaRings+1; i++) { // beam ends
+		if (extraFancy && sphereFraction !== "whole" && splitBeams) for (let i=1; i<intersectionAreaRings+1; i++) { // beam ends
 			const lastRoot = (rings + i) * (slices + 1) + slices;
 			const endPoint = vertexData[lastRoot];
 			const tipPoint = vertexData[ tips + fullBeamCount ];
@@ -546,7 +553,7 @@ const sunVerticesSelector = createSelector(
 		}
 
 		if (fakeExtrude && baseHeight > 0) {
-			const length = bottomFaceIndices.length; // pedestal edges
+			const length = bottomFaceIndices.length; // pedestal sides
 			for (let i=0; i<length; i++) { // pedestal outline (copied)
 				const vertex = vertexData[ bottomFaceIndices[i] ];
 				vertexData.push([
@@ -557,7 +564,8 @@ const sunVerticesSelector = createSelector(
 			}
 			const theta = Math.PI / 2.0;
 			const sinTheta = Math.sin(theta);
-			for (let j=0; j<=slices; j++) { // pedestal sun underside
+			
+			for (let j=0; j<=slices; j++) { // pedestal sun underside, otherwise using sphere bottom edge vertices
 				const phi = j * sliceDelta;
 				const cosPhi = Math.cos(phi);
 				const sinPhi = Math.sin(phi);
@@ -565,7 +573,15 @@ const sunVerticesSelector = createSelector(
 				const y = sinPhi * sinTheta;
 				vertexData.push([x*sunRadius, y*sunRadius, -baseHeight]);
 			}
+
+			const anchorVertex = vertexData[anchor];
+			vertexData.push([
+				anchorVertex[0],
+				anchorVertex[1],
+				-baseHeight
+			]);
 		}
+
 		//deepFreeze(vertexData);
 		return vertexData;
 	}
@@ -575,8 +591,10 @@ const sunVerticesSelector = createSelector(
 
 
 const sunIndicesSelector = createSelector(
-	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector,flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, beamLengthVertexCountSelector],
-	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, beamLengthVertexCount) => {
+	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector,flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugUnderSelector, beamLengthVertexCountSelector, splitBeamsSelector],
+	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugUnder, beamLengthVertexCount, splitBeams) => {
+		
+		
 		const indexData = [];
 		const divisions = fullBeamCount * 2;
 		const per = slices / divisions;
@@ -587,8 +605,10 @@ const sunIndicesSelector = createSelector(
 		const lastEdgeCount = Math.floor((slices + per) / (per * 2));
 		const firstBeamEndsStart = lastEdgeCount * beamLengthVertexCount * 2 + extraFancyStart + (slices+1) * beamLengthVertexCount * 2;
 		const lastBeamEndsStart = firstBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
-		const pedestalStart = sphereFraction === "whole" ? firstBeamEndsStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
-
+		const pedestalStart = (sphereFraction === "whole" || !splitBeams) ? firstBeamEndsStart : lastBeamEndsStart + intersectionAreaRings * beamLengthVertexCount;
+		const sunUndersideStart = (fakeExtrude && baseHeight > 0) ? pedestalStart + bottomFaceIndices.length : (rings+intersectionAreaRings) * (slices + 1);
+		const underAnchorLoc = sunUndersideStart + slices + 1;
+		
 		for (let i=0; i<rings; i++) { // the cap
 			for (let j=0; j<slices; j++) {
 				const first = i * (slices + 1) + j;
@@ -602,7 +622,7 @@ const sunIndicesSelector = createSelector(
 			for (let j=0; j<slices; j++) {
 				const first = (rings + i) * (slices + 1) + j;
 				const second = first + slices + 1;
-				const larger = j % (per * 2);
+				const larger = !splitBeams ? (j + per) % (per * 2) : j % (per * 2);
 				const smaller = j % per;
 				let k = smaller;
 				if (larger >= per) {
@@ -617,21 +637,21 @@ const sunIndicesSelector = createSelector(
 		}
 
 		if (plotFancy || extraFancy) for (let j=0; j<slices; j++) { // new beam indices
-			const larger = j % (per * 2);
+
+			const larger = !splitBeams ? (j + per) % (per * 2) : j % (per * 2);
 			const smaller = j % per;
 			let i = smaller;
 			const division = Math.floor( j / per );
-			const tipNumber = Math.ceil( division / 2 ) ;
+			const tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			const tipIndex = tips + tipNumber;
-			//const isLastEdge = !((j + 1 + per) % (per * 2));
-			const notLastEdge = (j + 1 + per) % (per * 2);
-			//const notBeamValley = (j + per) % (per * 2);
-			//const isBeamValley = !((j + per) % (per * 2));
+			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
+			const notLastEdge = !isLastEdgeBeforeBeamValley;
+
 			if (larger < per) {
 				const firstRoot = (rings + i) * (slices + 1) + j;
 				const secondRoot = (rings + i + 1) * (slices + 1) + j + 1;
-				const additional = Math.floor((j + per) / (per * 2));
-				const slice = j + additional;
+				const additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
+				const slice = j + additionalDueToBeamValleysHavingTwoLines;
 				let location = extraFancyStart;
 				let nextLocation = location;
 				let level = (slice * beamLengthVertexCount * 2);
@@ -673,10 +693,12 @@ const sunIndicesSelector = createSelector(
 			}
 
 			if (larger >= per) {
+			//if (larger >= per || (isLastEdgeBeforeBeamValley && j < slices)) {
 				if (notLastEdge) i = per - i;
 				let firstRoot = (rings + i) * (slices + 1) + j;
 				let secondRoot = firstRoot - slices;
-				const slice = j + Math.floor((j + per) / (per * 2));
+				const additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
+				const slice = j + additionalDueToBeamValleysHavingTwoLines;
 				let location = extraFancyStart;
 				let nextLocation = location;
 				let level = (slice * beamLengthVertexCount * 2);
@@ -715,9 +737,7 @@ const sunIndicesSelector = createSelector(
 			}
 		}
 
-
-		
-		if (!debugFirst && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
+		if (!debugFirst && plotFancy && sphereFraction !== "whole" && splitBeams) for (let i=0; i<intersectionAreaRings; i++) { // first beam ends
 			const one = (rings + i) * (slices + 1);
 			const two = (rings + i + 1) * (slices + 1);
 			const firstTip = tips;
@@ -727,7 +747,8 @@ const sunIndicesSelector = createSelector(
 				let location = extraFancyStart;
 				if (i) location = firstBeamEndsStart + (i-1)*beamLengthVertexCount;
 				let nextLocation = firstBeamEndsStart + i*beamLengthVertexCount;
-				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
+				// temporarily disabled again
+				//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + beamLengthVertexCount; // last line is the underside
 				let a = 0;
 				const midFirst = location + a;
 				const midSecond = nextLocation + a;
@@ -748,7 +769,7 @@ const sunIndicesSelector = createSelector(
 			}
 		}
 
-		if (!debugLast && plotFancy && sphereFraction !== "whole") for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
+		if (!debugLast && plotFancy && sphereFraction !== "whole" && splitBeams) for (let i=0; i<intersectionAreaRings; i++) { // last beam ends
 			const three = (rings + i) * (slices + 1) + slices;
 			const four = (rings + i + 1) * (slices + 1) + slices;
 			const lastTip = tips + fullBeamCount;
@@ -758,7 +779,8 @@ const sunIndicesSelector = createSelector(
 				let location = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2;
 				if (i) location = lastBeamEndsStart + (i-1)*beamLengthVertexCount;
 				let nextLocation = lastBeamEndsStart + i*beamLengthVertexCount;
-				if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
+				// temporarily disabled again
+				//if (i === intersectionAreaRings-1) nextLocation = extraFancyStart + (slices + lastEdgeCount) * beamLengthVertexCount * 2 + beamLengthVertexCount; // last line is the underside
 				let a = 0;
 				const midFirst = location + a;
 				const midSecond = nextLocation + a;
@@ -790,15 +812,15 @@ const sunIndicesSelector = createSelector(
 			const second = first + slices + 1;
 			indexData.push([anchor, first, second]);
 		}
-		for (let j=0; j<slices; j++) { // original sun bottom, without beams
-			let i = (rings+intersectionAreaRings) * (slices + 1);
-			if (fakeExtrude && baseHeight > 0) i = pedestalStart + bottomFaceIndices.length;
-			const first = i + j;
+		if (!debugUnder) for (let j=0; j<slices; j++) { // original sun bottom, without beams
+			const first = sunUndersideStart + j;
 			const second = first + 1;
-			if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
+			if (fakeExtrude && baseHeight > 0 && sphereFraction === "whole") indexData.push([underAnchorLoc, second, first]);
+			else if (fakeExtrude && baseHeight > 0) indexData.push([pedestalStart, second, first]);
 			else indexData.push([anchor, second, first]);
 		}
-		if (fakeExtrude && baseHeight > 0) {
+
+		if (fakeExtrude && baseHeight > 0) { // pedestal sides
 			const length = bottomFaceIndices.length;
 			for (let i=0; i<length-1; i++) {
 				const topVertex = bottomFaceIndices[i];
