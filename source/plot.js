@@ -287,11 +287,11 @@ const bottomFaceIndicesSelector = createSelector(
 			const division = Math.floor( j / per );
 			const tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			const tipIndex = tips + tipNumber;
-			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
-			const notLastEdge = !isLastEdgeBeforeBeamValley;
+			const isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
+			const notLastEdge = !isLastEdgeBeforeBeamValleyToSneakInOneMore;
 			const isBeamValley = !splitBeams ? !(j % (per * 2)) : !((j + per) % (per * 2));
 			if (larger < per) {
-				if (isLastEdgeBeforeBeamValley) {
+				if (isLastEdgeBeforeBeamValleyToSneakInOneMore) {
 					const additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
 					const slice = j + additionalDueToBeamValleysHavingTwoLines;
 					let location = extraFancyStart;
@@ -305,7 +305,6 @@ const bottomFaceIndicesSelector = createSelector(
 					}
 				}
 			}
-
 			if (larger >= per) {
 				if (isBeamValley) {// && (splitBeams || j > 0)) {
 					if (notLastEdge) i = per - i;
@@ -338,7 +337,7 @@ const bottomFaceIndicesSelector = createSelector(
 			bottomFaceIndices.push(lastRoot);
 			bottomFaceIndices.push(anchor);
 		}
-
+		console.log("bottomFaceIndices:",bottomFaceIndices);
 		return bottomFaceIndices;
 	}
 );
@@ -438,7 +437,7 @@ const sunVerticesSelector = createSelector(
 			const division = Math.floor( j / per );
 			let tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			let tipIndex = tips + tipNumber;
-			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
+			const isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
 			let tipPoint = vertexData[tipIndex];
 
 			let pedestal = 0;
@@ -448,8 +447,8 @@ const sunVerticesSelector = createSelector(
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = !splitBeams ? tipNumber*per*2+per : tipNumber*per*2;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
-				const isEndPiece = splitBeams && (beamSlice === j || j === slices);
-				const isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? (beamSlice === j && j < slices) : (beamSlice === j + per && j < slices));
+				const isEndPiece = splitBeams && (j === 0 || j === slices);
+				const isTipSlice = (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
 					const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
@@ -478,10 +477,10 @@ const sunVerticesSelector = createSelector(
 				}
 			}
 
-			if (larger >= per || (isLastEdgeBeforeBeamValley && j < slices)) { // isLastEdgeBeforeBeamValley to sneak in one more set of vertices
+			if (larger >= per || (isLastEdgeBeforeBeamValleyToSneakInOneMore && j < slices)) { // isLastEdgeBeforeBeamValleyToSneakInOneMore to sneak in one more set of vertices
 				let slice = j;
 				let direction = -1;
-				if (isLastEdgeBeforeBeamValley) { // last edge of the new beam segments
+				if (isLastEdgeBeforeBeamValleyToSneakInOneMore) { // last edge of the new beam segments
 					slice++;
 					i++;
 					tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
@@ -494,8 +493,8 @@ const sunVerticesSelector = createSelector(
 				const firstRoot = (rings + i) * (slices + 1) + slice;
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = tipNumber*per*2;
-				const isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
-				const isEndPiece = splitBeams && (beamSlice === j || j === slices);
+				const isTipSlice = !isLastEdgeBeforeBeamValleyToSneakInOneMore && (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
+				const isEndPiece = !isLastEdgeBeforeBeamValleyToSneakInOneMore && splitBeams && (j === 0 || j === slices);
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
@@ -644,8 +643,8 @@ const sunIndicesSelector = createSelector(
 			const division = Math.floor( j / per );
 			const tipNumber = !splitBeams ? Math.floor(division/2) : Math.ceil(division/2);
 			const tipIndex = tips + tipNumber;
-			const isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
-			const notLastEdge = !isLastEdgeBeforeBeamValley;
+			const isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2))
+			const notLastEdge = !isLastEdgeBeforeBeamValleyToSneakInOneMore;
 
 			if (larger < per) {
 				const firstRoot = (rings + i) * (slices + 1) + j;
@@ -693,7 +692,7 @@ const sunIndicesSelector = createSelector(
 			}
 
 			if (larger >= per) {
-			//if (larger >= per || (isLastEdgeBeforeBeamValley && j < slices)) {
+			//if (larger >= per || (isLastEdgeBeforeBeamValleyToSneakInOneMore && j < slices)) {
 				if (notLastEdge) i = per - i;
 				let firstRoot = (rings + i) * (slices + 1) + j;
 				let secondRoot = firstRoot - slices;

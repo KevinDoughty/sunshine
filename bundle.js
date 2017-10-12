@@ -4117,11 +4117,11 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 		var division = Math.floor(j / per);
 		var tipNumber = !splitBeams ? Math.floor(division / 2) : Math.ceil(division / 2);
 		var tipIndex = tips + tipNumber;
-		var isLastEdgeBeforeBeamValley = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2));
-		var notLastEdge = !isLastEdgeBeforeBeamValley;
+		var isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((j + 1) % (per * 2)) : !((j + 1 + per) % (per * 2));
+		var notLastEdge = !isLastEdgeBeforeBeamValleyToSneakInOneMore;
 		var isBeamValley = !splitBeams ? !(j % (per * 2)) : !((j + per) % (per * 2));
 		if (larger < per) {
-			if (isLastEdgeBeforeBeamValley) {
+			if (isLastEdgeBeforeBeamValleyToSneakInOneMore) {
 				var additionalDueToBeamValleysHavingTwoLines = !splitBeams ? Math.floor(j / (per * 2)) : Math.floor((j + per) / (per * 2));
 				var slice = j + additionalDueToBeamValleysHavingTwoLines;
 				var _location = extraFancyStart;
@@ -4135,7 +4135,6 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 				}
 			}
 		}
-
 		if (larger >= per) {
 			if (isBeamValley) {
 				// && (splitBeams || j > 0)) {
@@ -4170,7 +4169,7 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 		bottomFaceIndices.push(lastRoot);
 		bottomFaceIndices.push(anchor);
 	}
-
+	console.log("bottomFaceIndices:", bottomFaceIndices);
 	return bottomFaceIndices;
 });
 
@@ -4270,7 +4269,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 		var division = Math.floor(_j2 / per);
 		var tipNumber = !splitBeams ? Math.floor(division / 2) : Math.ceil(division / 2);
 		var tipIndex = tips + tipNumber;
-		var isLastEdgeBeforeBeamValley = !splitBeams ? !((_j2 + 1) % (per * 2)) : !((_j2 + 1 + per) % (per * 2));
+		var isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((_j2 + 1) % (per * 2)) : !((_j2 + 1 + per) % (per * 2));
 		var tipPoint = vertexData[tipIndex];
 
 		var pedestal = 0;
@@ -4280,8 +4279,8 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var firstPoint = vertexData[firstRoot];
 			var beamSlice = !splitBeams ? tipNumber * per * 2 + per : tipNumber * per * 2;
 			var topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
-			var isEndPiece = splitBeams && (beamSlice === _j2 || _j2 === slices);
-			var isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? beamSlice === _j2 && _j2 < slices : beamSlice === _j2 + per && _j2 < slices);
+			var isEndPiece = splitBeams && (_j2 === 0 || _j2 === slices);
+			var isTipSlice = !splitBeams ? beamSlice === _j2 + per && _j2 < slices : beamSlice === _j2 && _j2 < slices;
 			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
 				// top side
 				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / beamLengthVertexCount;
@@ -4304,11 +4303,11 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			}
 		}
 
-		if (larger >= per || isLastEdgeBeforeBeamValley && _j2 < slices) {
-			// isLastEdgeBeforeBeamValley to sneak in one more set of vertices
+		if (larger >= per || isLastEdgeBeforeBeamValleyToSneakInOneMore && _j2 < slices) {
+			// isLastEdgeBeforeBeamValleyToSneakInOneMore to sneak in one more set of vertices
 			var slice = _j2;
 			var direction = -1;
-			if (isLastEdgeBeforeBeamValley) {
+			if (isLastEdgeBeforeBeamValleyToSneakInOneMore) {
 				// last edge of the new beam segments
 				slice++;
 				_i3++;
@@ -4322,8 +4321,8 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _firstRoot = (rings + _i3) * (slices + 1) + slice;
 			var _firstPoint = vertexData[_firstRoot];
 			var _beamSlice = tipNumber * per * 2;
-			var _isTipSlice = !isLastEdgeBeforeBeamValley && (!splitBeams ? _beamSlice === _j2 + per && _j2 < slices : _beamSlice === _j2 && _j2 < slices);
-			var _isEndPiece = splitBeams && (_beamSlice === _j2 || _j2 === slices);
+			var _isTipSlice = !isLastEdgeBeforeBeamValleyToSneakInOneMore && (!splitBeams ? _beamSlice === _j2 + per && _j2 < slices : _beamSlice === _j2 && _j2 < slices);
+			var _isEndPiece = !isLastEdgeBeforeBeamValleyToSneakInOneMore && splitBeams && (_j2 === 0 || _j2 === slices);
 			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
 			for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
 				// top side
@@ -4452,8 +4451,8 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		var division = Math.floor(_j5 / per);
 		var tipNumber = !splitBeams ? Math.floor(division / 2) : Math.ceil(division / 2);
 		var tipIndex = tips + tipNumber;
-		var isLastEdgeBeforeBeamValley = !splitBeams ? !((_j5 + 1) % (per * 2)) : !((_j5 + 1 + per) % (per * 2));
-		var notLastEdge = !isLastEdgeBeforeBeamValley;
+		var isLastEdgeBeforeBeamValleyToSneakInOneMore = !splitBeams ? !((_j5 + 1) % (per * 2)) : !((_j5 + 1 + per) % (per * 2));
+		var notLastEdge = !isLastEdgeBeforeBeamValleyToSneakInOneMore;
 
 		if (_larger < per) {
 			var firstRoot = (rings + _i8) * (slices + 1) + _j5;
@@ -4501,7 +4500,7 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		}
 
 		if (_larger >= per) {
-			//if (larger >= per || (isLastEdgeBeforeBeamValley && j < slices)) {
+			//if (larger >= per || (isLastEdgeBeforeBeamValleyToSneakInOneMore && j < slices)) {
 			if (notLastEdge) _i8 = per - _i8;
 			var _firstRoot3 = (rings + _i8) * (slices + 1) + _j5;
 			var _secondRoot = _firstRoot3 - slices;
