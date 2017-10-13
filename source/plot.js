@@ -337,7 +337,7 @@ const bottomFaceIndicesSelector = createSelector(
 			bottomFaceIndices.push(lastRoot);
 			bottomFaceIndices.push(anchor);
 		}
-		console.log("bottomFaceIndices:",bottomFaceIndices);
+		
 		return bottomFaceIndices;
 	}
 );
@@ -448,7 +448,7 @@ const sunVerticesSelector = createSelector(
 				const beamSlice = !splitBeams ? tipNumber*per*2+per : tipNumber*per*2;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				const isEndPiece = splitBeams && (j === 0 || j === slices);
-				const isTipSlice = (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
+				const isTipSlice = (beamSlice === j);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
 					const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
@@ -493,14 +493,13 @@ const sunVerticesSelector = createSelector(
 				const firstRoot = (rings + i) * (slices + 1) + slice;
 				const firstPoint = vertexData[firstRoot];
 				const beamSlice = tipNumber*per*2;
-				const isTipSlice = !isLastEdgeBeforeBeamValleyToSneakInOneMore && (!splitBeams ? (beamSlice === j + per && j < slices) : (beamSlice === j && j < slices));
-				const isEndPiece = !isLastEdgeBeforeBeamValleyToSneakInOneMore && splitBeams && (j === 0 || j === slices);
+				//const isTipSlice = false;
+				//const isEndPiece = false;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
 					const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
 					const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
-					const regular = [x,y];
-					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction);
+					const value = resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction);
 					vertexData.push([
 						useFlameBezier ? value[0] : x,
 						useFlameBezier ? value[1] : y,
@@ -514,8 +513,7 @@ const sunVerticesSelector = createSelector(
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // underside
 					const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
 					const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
-					const regular = [x,y];
-					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction);
+					const value = resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction);
 					vertexData.push([
 						useFlameBezier ? value[0] : x,
 						useFlameBezier ? value[1] : y,
