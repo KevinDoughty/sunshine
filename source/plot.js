@@ -36,9 +36,9 @@ export const settingsSelector = createSelector(
 	}
 );
 
-const ringsSelector = createSelector([settingsSelector], settings => settings.resolution * 1); // latitude // stacked ring layers
+const resolutionSelector = createSelector([settingsSelector], settings => Math.max(1, Math.min(100, settings.resolution * 1))); // segments per quarter circle, for both latitude and longitude
+const ringsSelector = createSelector([resolutionSelector], resolution => resolution * 1); // latitude // stacked ring layers
 const beamCountSelector = createSelector([settingsSelector], settings => settings.beamCount * 1);
-const resolutionSelector = createSelector([settingsSelector], settings => settings.resolution * 1); // segments per quarter circle, for both latitude and longitude
 const sphereFractionSelector = createSelector([settingsSelector], settings => settings.sphereFraction);
 const radiusSelector = createSelector([settingsSelector], settings => settings.radius * 1);
 const sunRatioSelector = createSelector([settingsSelector], settings => settings.sunRatio * 1);
@@ -232,9 +232,9 @@ const beamFullTopThetaSelector = createSelector( // not isosceles if squashed
 	}
 );
 
-const ringDeltaTopSelector = createSelector([settingsSelector,beamFullTopThetaSelector], (settings, beamTopTheta) => {
+const ringDeltaTopSelector = createSelector([resolutionSelector,beamFullTopThetaSelector], (resolution, beamTopTheta) => {
 	const minus = quarter - beamTopTheta;
-	const result = minus / settings.resolution;
+	const result = minus / resolution;
 	return result;
 });
 

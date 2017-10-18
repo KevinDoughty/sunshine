@@ -3836,15 +3836,15 @@ var settingsSelector = exports.settingsSelector = (0, _reselect.createSelector)(
 	return settings;
 });
 
-var ringsSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return settings.resolution * 1;
+var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return Math.max(1, Math.min(100, settings.resolution * 1));
+}); // segments per quarter circle, for both latitude and longitude
+var ringsSelector = (0, _reselect.createSelector)([resolutionSelector], function (resolution) {
+	return resolution * 1;
 }); // latitude // stacked ring layers
 var beamCountSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.beamCount * 1;
 });
-var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return settings.resolution * 1;
-}); // segments per quarter circle, for both latitude and longitude
 var sphereFractionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.sphereFraction;
 });
@@ -4064,9 +4064,9 @@ var beamFullTopThetaSelector = (0, _reselect.createSelector)( // not isosceles i
 	return result;
 });
 
-var ringDeltaTopSelector = (0, _reselect.createSelector)([settingsSelector, beamFullTopThetaSelector], function (settings, beamTopTheta) {
+var ringDeltaTopSelector = (0, _reselect.createSelector)([resolutionSelector, beamFullTopThetaSelector], function (resolution, beamTopTheta) {
 	var minus = quarter - beamTopTheta;
-	var result = minus / settings.resolution;
+	var result = minus / resolution;
 	return result;
 });
 
