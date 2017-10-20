@@ -66,6 +66,12 @@ const debugOddSelector = createSelector([settingsSelector], settings => settings
 const debugFirstSelector = createSelector([settingsSelector], settings => settings.debugFirst);
 const debugLastSelector = createSelector([settingsSelector], settings => settings.debugLast);
 const debugBaseSelector = createSelector([settingsSelector], settings => settings.debugBase);
+export const debuggingSelector = createSelector(
+	[debugLeftSelector,debugRightSelector,debugTopSelector,debugBottomSelector,debugEvenSelector,debugOddSelector,debugFirstSelector,debugLastSelector,debugBaseSelector],
+	(debugLeft,debugRight,debugTop,debugBottom,debugEven,debugOdd,debugFirst,debugLast,debugBase) => {
+		return (debugLeft || debugRight || debugTop || debugBottom || debugEven || debugOdd || debugFirst || debugLast || debugBase)
+	}
+);
 
 const sunRadiusSelector = createSelector(
 	[radiusSelector, horizonRatioSelector],
@@ -365,6 +371,13 @@ function resolveBezier(useFlameBezier,x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,le
 	const xxx = (fromX + (toX - fromX) * loc / per);
 	const yyy = (fromY + (toY - fromY) * loc / per);
 
+	const beamAngle = Math.atan2(toY-fromY, toX-fromX);
+	const eighth = Math.PI / 4;
+	const difference = beamAngle-eighth;
+	if (typeof direction === "undefined") direction === 1;
+	const amount = loc / per;
+
+
 	if (wavyAmount) {
 		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
 		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
@@ -380,16 +393,12 @@ function resolveBezier(useFlameBezier,x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,le
 			//return x * Math.sin(wavyCount * x)/Math.PI*2;
 			//wavyX = xx * Math.cos(wavyCount * xx)/Math.PI*2;
 			//wavyY = yy * Math.sin(wavyCount * yy)/Math.PI*2;
-		
+			
 		}
 		return [wavyX + xxx, wavyY + yyy];
 	}
-	
-	if (typeof direction === "undefined") direction === 1;
-	const beamAngle = Math.atan2(toY-fromY, toX-fromX);
-	const eighth = Math.PI / 4;
-	const difference = beamAngle-eighth;
-	const amount = loc / per;
+
+
 	const X = [0, direction < 0 ? y0 : x0, direction < 0 ? y1 : x1, 1];
 	const Y = [0, direction < 0 ? x0 : y0, direction < 0 ? x1 : y1, 1];
 	const x = cubic(X, amount);

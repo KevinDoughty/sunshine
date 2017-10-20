@@ -3798,7 +3798,7 @@ if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.meshSelector = exports.settingsSelector = undefined;
+exports.meshSelector = exports.debuggingSelector = exports.settingsSelector = undefined;
 
 var _reselect = __webpack_require__(66);
 
@@ -3923,6 +3923,9 @@ var debugLastSelector = (0, _reselect.createSelector)([settingsSelector], functi
 });
 var debugBaseSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.debugBase;
+});
+var debuggingSelector = exports.debuggingSelector = (0, _reselect.createSelector)([debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugBaseSelector], function (debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugBase) {
+	return debugLeft || debugRight || debugTop || debugBottom || debugEven || debugOdd || debugFirst || debugLast || debugBase;
 });
 
 var sunRadiusSelector = (0, _reselect.createSelector)([radiusSelector, horizonRatioSelector], function (radius, horizonRatio) {
@@ -4196,6 +4199,12 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 	var xxx = fromX + (toX - fromX) * loc / per;
 	var yyy = fromY + (toY - fromY) * loc / per;
 
+	var beamAngle = Math.atan2(toY - fromY, toX - fromX);
+	var eighth = Math.PI / 4;
+	var difference = beamAngle - eighth;
+	if (typeof direction === "undefined") direction === 1;
+	var amount = loc / per;
+
 	if (wavyAmount) {
 		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
 		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
@@ -4214,11 +4223,6 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 		return [wavyX + xxx, wavyY + yyy];
 	}
 
-	if (typeof direction === "undefined") direction === 1;
-	var beamAngle = Math.atan2(toY - fromY, toX - fromX);
-	var eighth = Math.PI / 4;
-	var difference = beamAngle - eighth;
-	var amount = loc / per;
 	var X = [0, direction < 0 ? y0 : x0, direction < 0 ? y1 : x1, 1];
 	var Y = [0, direction < 0 ? x0 : y0, direction < 0 ? x1 : y1, 1];
 	var x = cubic(X, amount);
@@ -11941,12 +11945,12 @@ var ListHeader = function (_Component) {
 				),
 				(0, _preact.h)(
 					"button",
-					{ onClick: this.handleStlClick },
+					{ onClick: this.handleStlClick, disabled: this.props.debugging === true },
 					"stl"
 				),
 				(0, _preact.h)(
 					"button",
-					{ onClick: this.handleObjClick },
+					{ onClick: this.handleObjClick, disabled: this.props.debugging === true },
 					"obj"
 				)
 			);
@@ -11959,6 +11963,7 @@ var ListHeader = function (_Component) {
 function mapStateToProps(state, ownProps) {
 	return Object.assign({}, ownProps, {
 		mesh: plot.meshSelector(state),
+		debugging: plot.debuggingSelector(state),
 		history: state.history
 	});
 }
@@ -12987,7 +12992,8 @@ var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "ra
 // 	{ "id": "flatTop", "displayName": "Flat Top", "type": "bool",  "default": true }
 // ];
 
-var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }];
+var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, //0.7071 },
+{ "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }];
 var wavy = [{ "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyScale", "displayName": "Scale", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
 { "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues },

@@ -49,8 +49,8 @@ class ListHeader extends Component {
 			<div style={style} >
 				<button onClick={this.handleUndoClick} disabled={this.props.history.past.length === 0} >undo</button>
 				<button onClick={this.handleRedoClick} disabled={this.props.history.future.length === 0} >redo</button>
-				<button onClick={this.handleStlClick} >stl</button>
-				<button onClick={this.handleObjClick} >obj</button>
+				<button onClick={this.handleStlClick} disabled={this.props.debugging === true} >stl</button>
+				<button onClick={this.handleObjClick} disabled={this.props.debugging === true} >obj</button>
 			</div>
 		);
 	}
@@ -59,6 +59,7 @@ class ListHeader extends Component {
 function mapStateToProps(state, ownProps) {
 	return Object.assign({}, ownProps, {
 		mesh: plot.meshSelector(state),
+		debugging: plot.debuggingSelector(state),
 		history: state.history
 	});
 }
