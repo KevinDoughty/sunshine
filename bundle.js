@@ -3835,19 +3835,28 @@ var settingsSelector = exports.settingsSelector = (0, _reselect.createSelector)(
 	});
 	return settings;
 });
-
+var sphereFractionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.sphereFraction;
+});
+//const beamCountSelector = createSelector([settingsSelector], settings => settings.beamCount * 1);
+var beamCountSelector = (0, _reselect.createSelector)([settingsSelector, sphereFractionSelector], function (settings, sphereFraction) {
+	return Math.max(1, Math.min(32, sphereFraction === "quarter" ? Math.floor(settings.beamCount * 1) : settings.beamCount * 1));
+});
+var wavyCountSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return Math.max(1, Math.min(32, settings.wavyCount * 1));
+});
+var wavyScaleSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return Math.max(1, Math.min(32, settings.wavyScale * 1));
+});
+var wavyAmountSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return Math.max(1, Math.min(32, settings.wavyAmount * 1));
+});
 var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return Math.max(1, Math.min(100, settings.resolution * 1));
 }); // segments per quarter circle, for both latitude and longitude
 var ringsSelector = (0, _reselect.createSelector)([resolutionSelector], function (resolution) {
 	return resolution * 1;
 }); // latitude // stacked ring layers
-var beamCountSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return settings.beamCount * 1;
-});
-var sphereFractionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return settings.sphereFraction;
-});
 var radiusSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.radius * 1;
 });
@@ -3912,8 +3921,8 @@ var debugFirstSelector = (0, _reselect.createSelector)([settingsSelector], funct
 var debugLastSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.debugLast;
 });
-var debugUnderSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return settings.debugUnder;
+var debugBaseSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.debugBase;
 });
 
 var sunRadiusSelector = (0, _reselect.createSelector)([radiusSelector, horizonRatioSelector], function (radius, horizonRatio) {
@@ -3930,6 +3939,11 @@ var sunHeightSelector = (0, _reselect.createSelector)([sunRadiusSelector, sunRat
 // 		return sunHeight * starRatio;
 // 	}
 // );
+
+var wavySelector = (0, _reselect.createSelector)([wavyCountSelector], function (wavyCount) {
+	//return x * Math.sin(wavyCount * x)/Math.PI*2;
+
+});
 
 var arcRadiansSelector = (0, _reselect.createSelector)([sphereFractionSelector], function (sphereFraction) {
 	if (sphereFraction === "whole") return Math.PI * 2.0;
@@ -4173,7 +4187,33 @@ var bottomFaceIndicesSelector = (0, _reselect.createSelector)([sphereFractionSel
 	return bottomFaceIndices;
 });
 
-function resolveBezier(x0, y0, x1, y1, fromX, fromY, toX, toY, loc, per, length, direction) {
+function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, loc, per, length, direction, isTipSliceOrEnd, wavyCount, wavyScale, wavyAmount) {
+	var wavyX = 0;
+	var wavyY = 0;
+	var waveX = 1;
+	var waveY = 1;
+
+	var xxx = fromX + (toX - fromX) * loc / per;
+	var yyy = fromY + (toY - fromY) * loc / per;
+
+	if (wavyAmount) {
+		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
+		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
+	}
+
+	if (isTipSliceOrEnd || !useFlameBezier) {
+		if (wavyAmount && isTipSliceOrEnd) {}
+		// 		const xx = (fromX + (toX - fromX) * loc / per);
+		// 		const yy = (fromY + (toY - fromY) * loc / per);
+		if (wavyAmount && isTipSliceOrEnd) {
+			//return x * Math.sin(wavyCount * x)/Math.PI*2;
+			//wavyX = xx * Math.cos(wavyCount * xx)/Math.PI*2;
+			//wavyY = yy * Math.sin(wavyCount * yy)/Math.PI*2;
+
+		}
+		return [wavyX + xxx, wavyY + yyy];
+	}
+
 	if (typeof direction === "undefined") direction === 1;
 	var beamAngle = Math.atan2(toY - fromY, toX - fromX);
 	var eighth = Math.PI / 4;
@@ -4184,7 +4224,11 @@ function resolveBezier(x0, y0, x1, y1, fromX, fromY, toX, toY, loc, per, length,
 	var x = cubic(X, amount);
 	var y = cubic(Y, amount);
 	var bezierAngle = Math.atan2(y, x) + difference;
-	var result = [fromX + Math.cos(bezierAngle) * length * loc / per, fromY + Math.sin(bezierAngle) * length * loc / per];
+	//const bezierAngle = Math.atan2(yyy,xxx) + difference;
+	var xx = wavyX + fromX + Math.cos(bezierAngle) * length * amount;
+	var yy = wavyY + fromY + Math.sin(bezierAngle) * length * amount;
+	var result = [xx, yy];
+
 	return result;
 }
 
@@ -4192,7 +4236,7 @@ function lengthOfEdge(firstPoint, tipPoint) {
 	return Math.hypot(firstPoint[0] - tipPoint[0], firstPoint[1] - tipPoint[1]);
 }
 
-var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, bottomFaceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, bottomFaceIndices, x0, y0, x1, y1, useFlameBezier, beamLengthVertexCount, splitBeams) {
+var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, bottomFaceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector, wavyCountSelector, wavyScaleSelector, wavyAmountSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, bottomFaceIndices, x0, y0, x1, y1, useFlameBezier, beamLengthVertexCount, splitBeams, wavyCount, wavyScale, wavyAmount) {
 	var vertexData = [];
 	for (var i = 0; i < rings; i++) {
 		// latitude // stacked layers // the cap
@@ -4283,11 +4327,15 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var isTipSlice = beamSlice === _j2;
 			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
 				// top side
-				var _x3 = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * _a4 / beamLengthVertexCount;
-				var _y3 = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * _a4 / beamLengthVertexCount;
-				var regular = [_x3, _y3];
-				var value = isTipSlice || isEndPiece ? regular : resolveBezier(x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, topEdgeLength, 1);
-				vertexData.push([useFlameBezier ? value[0] : _x3, useFlameBezier ? value[1] : _y3, firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / beamLengthVertexCount]);
+				//const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
+				//const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
+				//const regular = [x,y];
+				//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+				var value = resolveBezier(useFlameBezier, x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, topEdgeLength, 1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+				vertexData.push([
+				//(useFlameBezier ? value[0] : x),
+				//(useFlameBezier ? value[1] : y),
+				value[0], value[1], firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / beamLengthVertexCount]);
 			}
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var oneIndex = k + _j2; // same as sun bottom, except j loop is one greater, thus too long
@@ -4295,11 +4343,15 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
 			for (var _a5 = 1; _a5 < beamLengthVertexCount + 1; _a5++) {
 				// underside
-				var _x4 = onePoint[0] + (tipPoint[0] - onePoint[0]) * _a5 / beamLengthVertexCount;
-				var _y4 = onePoint[1] + (tipPoint[1] - onePoint[1]) * _a5 / beamLengthVertexCount;
-				var _regular = [_x4, _y4];
-				var _value = isTipSlice || isEndPiece ? _regular : resolveBezier(x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, bottomEdgeLength, 1);
-				vertexData.push([useFlameBezier ? _value[0] : _x4, useFlameBezier ? _value[1] : _y4, onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
+				//const x = (onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount);
+				//const y = (onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount);
+				//const regular = [x,y];
+				//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+				var _value = resolveBezier(useFlameBezier, x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, bottomEdgeLength, 1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+				vertexData.push([
+				//(useFlameBezier ? value[0] : x),
+				//(useFlameBezier ? value[1] : y),
+				_value[0], _value[1], onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
 			}
 		}
 
@@ -4326,10 +4378,13 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
 			for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
 				// top side
-				var _x5 = _firstPoint[0] + (tipPoint[0] - _firstPoint[0]) * _a6 / beamLengthVertexCount;
-				var _y5 = _firstPoint[1] + (tipPoint[1] - _firstPoint[1]) * _a6 / beamLengthVertexCount;
-				var _value2 = resolveBezier(x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, beamLengthVertexCount, _topEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value2[0] : _x5, useFlameBezier ? _value2[1] : _y5, _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / beamLengthVertexCount]);
+				//const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
+				//const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
+				var _value2 = resolveBezier(useFlameBezier, x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, beamLengthVertexCount, _topEdgeLength, direction, false, wavyCount, wavyScale, wavyAmount);
+				vertexData.push([
+				//useFlameBezier ? value[0] : x,
+				//useFlameBezier ? value[1] : y,
+				_value2[0], _value2[1], _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / beamLengthVertexCount]);
 			}
 			var _k = (rings + intersectionAreaRings) * (slices + 1);
 			var _oneIndex = _k + slice;
@@ -4337,10 +4392,13 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _bottomEdgeLength = lengthOfEdge(_onePoint, tipPoint);
 			for (var _a7 = 1; _a7 < beamLengthVertexCount + 1; _a7++) {
 				// underside
-				var _x6 = _onePoint[0] + (tipPoint[0] - _onePoint[0]) * _a7 / beamLengthVertexCount;
-				var _y6 = _onePoint[1] + (tipPoint[1] - _onePoint[1]) * _a7 / beamLengthVertexCount;
-				var _value3 = resolveBezier(x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, beamLengthVertexCount, _bottomEdgeLength, direction);
-				vertexData.push([useFlameBezier ? _value3[0] : _x6, useFlameBezier ? _value3[1] : _y6, _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / beamLengthVertexCount + pedestal]);
+				//const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
+				//const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
+				var _value3 = resolveBezier(useFlameBezier, x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, beamLengthVertexCount, _bottomEdgeLength, direction, false, wavyCount, wavyScale, wavyAmount);
+				vertexData.push([
+				//useFlameBezier ? value[0] : x,
+				//useFlameBezier ? value[1] : y,
+				_value3[0], _value3[1], _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / beamLengthVertexCount + pedestal]);
 			}
 		}
 	}
@@ -4382,9 +4440,9 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _phi2 = _j3 * sliceDelta;
 			var _cosPhi2 = Math.cos(_phi2);
 			var _sinPhi2 = Math.sin(_phi2);
-			var _x7 = _cosPhi2 * _sinTheta2;
-			var _y7 = _sinPhi2 * _sinTheta2;
-			vertexData.push([_x7 * sunRadius, _y7 * sunRadius, -baseHeight]);
+			var _x3 = _cosPhi2 * _sinTheta2;
+			var _y3 = _sinPhi2 * _sinTheta2;
+			vertexData.push([_x3 * sunRadius, _y3 * sunRadius, -baseHeight]);
 		}
 
 		var anchorVertex = vertexData[anchor];
@@ -4395,7 +4453,7 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 	return vertexData;
 });
 
-var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector, flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugUnderSelector, beamLengthVertexCountSelector, splitBeamsSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugUnder, beamLengthVertexCount, splitBeams) {
+var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector, flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugBaseSelector, beamLengthVertexCountSelector, splitBeamsSelector], function (sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugBase, beamLengthVertexCount, splitBeams) {
 
 	var indexData = [];
 	var divisions = fullBeamCount * 2;
@@ -4621,7 +4679,7 @@ var sunIndicesSelector = (0, _reselect.createSelector)([sphereFractionSelector, 
 		var _second3 = _first3 + slices + 1;
 		indexData.push([anchor, _first3, _second3]);
 	}
-	if (!debugUnder) for (var _j7 = 0; _j7 < slices; _j7++) {
+	if (!debugBase) for (var _j7 = 0; _j7 < slices; _j7++) {
 		// original sun bottom, without beams
 		var _first4 = sunUndersideStart + _j7;
 		var _second4 = _first4 + 1;
@@ -12919,9 +12977,9 @@ var fractionValues = ["quarter", "half", "whole"];
 // const sunShapeValues = [1,2];
 
 
-var debug = [{ "id": "debugEven", "displayName": "Even", "type": "bool", "default": false }, { "id": "debugOdd", "displayName": "Odd", "type": "bool", "default": false }, { "id": "debugLeft", "displayName": "Left", "type": "bool", "default": false }, { "id": "debugRight", "displayName": "Right", "type": "bool", "default": false }, { "id": "debugTop", "displayName": "Top", "type": "bool", "default": false }, { "id": "debugBottom", "displayName": "Bottom", "type": "bool", "default": false }, { "id": "debugFirst", "displayName": "First", "type": "bool", "default": false }, { "id": "debugLast", "displayName": "Last", "type": "bool", "default": false }, { "id": "debugUnder", "displayName": "Under", "type": "bool", "default": false }];
+var debug = [{ "id": "debugEven", "displayName": "Even", "type": "bool", "default": false }, { "id": "debugOdd", "displayName": "Odd", "type": "bool", "default": false }, { "id": "debugLeft", "displayName": "Left", "type": "bool", "default": false }, { "id": "debugRight", "displayName": "Right", "type": "bool", "default": false }, { "id": "debugTop", "displayName": "Top", "type": "bool", "default": false }, { "id": "debugBottom", "displayName": "Bottom", "type": "bool", "default": false }, { "id": "debugFirst", "displayName": "First", "type": "bool", "default": false }, { "id": "debugLast", "displayName": "Last", "type": "bool", "default": false }, { "id": "debugBase", "displayName": "Base", "type": "bool", "default": false }];
 
-var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "y0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }, { "id": "x1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "y1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }];
+var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "y0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.4 }, { "id": "x1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2 }, { "id": "y1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }];
 
 // const notImplemented = [
 // 	{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false },
@@ -12929,9 +12987,12 @@ var flameBezierValues = [{ "id": "x0", "displayName": "x0", "type": "float", "ra
 // 	{ "id": "flatTop", "displayName": "Flat Top", "type": "bool",  "default": true }
 // ];
 
-var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[0] }];
-var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": true }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues }];
+var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.7071 }, { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }];
+var wavy = [{ "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyScale", "displayName": "Scale", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }];
+var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues },
+//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
+{ "id": "wavy", "displayName": "Wavy", "type": "group", "default": wavy }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];
 

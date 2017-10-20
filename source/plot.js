@@ -35,11 +35,14 @@ export const settingsSelector = createSelector(
 		return settings;
 	}
 );
-
+const sphereFractionSelector = createSelector([settingsSelector], settings => settings.sphereFraction);
+//const beamCountSelector = createSelector([settingsSelector], settings => settings.beamCount * 1);
+const beamCountSelector = createSelector([settingsSelector,sphereFractionSelector], (settings,sphereFraction) => Math.max(1, Math.min(32, sphereFraction === "quarter" ? Math.floor(settings.beamCount * 1) : settings.beamCount * 1)));
+const wavyCountSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyCount * 1)));
+const wavyScaleSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyScale * 1)));
+const wavyAmountSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyAmount * 1)));
 const resolutionSelector = createSelector([settingsSelector], settings => Math.max(1, Math.min(100, settings.resolution * 1))); // segments per quarter circle, for both latitude and longitude
 const ringsSelector = createSelector([resolutionSelector], resolution => resolution * 1); // latitude // stacked ring layers
-const beamCountSelector = createSelector([settingsSelector], settings => settings.beamCount * 1);
-const sphereFractionSelector = createSelector([settingsSelector], settings => settings.sphereFraction);
 const radiusSelector = createSelector([settingsSelector], settings => settings.radius * 1);
 const sunRatioSelector = createSelector([settingsSelector], settings => settings.sunRatio * 1);
 const starRatioSelector = createSelector([settingsSelector], settings => settings.starRatio * 1);
@@ -62,7 +65,7 @@ const debugEvenSelector = createSelector([settingsSelector], settings => setting
 const debugOddSelector = createSelector([settingsSelector], settings => settings.debugOdd);
 const debugFirstSelector = createSelector([settingsSelector], settings => settings.debugFirst);
 const debugLastSelector = createSelector([settingsSelector], settings => settings.debugLast);
-const debugUnderSelector = createSelector([settingsSelector], settings => settings.debugUnder);
+const debugBaseSelector = createSelector([settingsSelector], settings => settings.debugBase);
 
 const sunRadiusSelector = createSelector(
 	[radiusSelector, horizonRatioSelector],
@@ -84,6 +87,14 @@ const sunHeightSelector = createSelector(
 // 		return sunHeight * starRatio;
 // 	}
 // );
+
+const wavySelector = createSelector(
+	[wavyCountSelector],
+	(wavyCount) => {
+		//return x * Math.sin(wavyCount * x)/Math.PI*2;
+		
+	}
+);
 
 const arcRadiansSelector = createSelector(
 	[sphereFractionSelector],
@@ -345,7 +356,35 @@ const bottomFaceIndicesSelector = createSelector(
 
 
 
-function resolveBezier(x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,length,direction) {
+function resolveBezier(useFlameBezier,x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,length,direction, isTipSliceOrEnd, wavyCount, wavyScale, wavyAmount) {
+	let wavyX = 0;
+	let wavyY = 0;
+	let waveX = 1;
+	let waveY = 1;
+
+	const xxx = (fromX + (toX - fromX) * loc / per);
+	const yyy = (fromY + (toY - fromY) * loc / per);
+
+	if (wavyAmount) {
+		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
+		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
+	}
+	
+	if (isTipSliceOrEnd || !useFlameBezier) {
+		if (wavyAmount && isTipSliceOrEnd) {
+			
+		}
+// 		const xx = (fromX + (toX - fromX) * loc / per);
+// 		const yy = (fromY + (toY - fromY) * loc / per);
+		if (wavyAmount && isTipSliceOrEnd) {
+			//return x * Math.sin(wavyCount * x)/Math.PI*2;
+			//wavyX = xx * Math.cos(wavyCount * xx)/Math.PI*2;
+			//wavyY = yy * Math.sin(wavyCount * yy)/Math.PI*2;
+		
+		}
+		return [wavyX + xxx, wavyY + yyy];
+	}
+	
 	if (typeof direction === "undefined") direction === 1;
 	const beamAngle = Math.atan2(toY-fromY, toX-fromX);
 	const eighth = Math.PI / 4;
@@ -356,7 +395,12 @@ function resolveBezier(x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,length,direction)
 	const x = cubic(X, amount);
 	const y = cubic(Y, amount);
 	const bezierAngle = Math.atan2(y,x) + difference;
-	const result =  [fromX + Math.cos(bezierAngle) * length * loc/per, fromY + Math.sin(bezierAngle) * length * loc/per];
+	//const bezierAngle = Math.atan2(yyy,xxx) + difference;
+	const xx = wavyX + fromX + Math.cos(bezierAngle) * length * amount;
+	const yy = wavyY + fromY + Math.sin(bezierAngle) * length * amount;
+	const result =  [xx, yy];
+
+	
 	return result;
 }
 
@@ -365,8 +409,8 @@ function lengthOfEdge(firstPoint, tipPoint) {
 }
 
 const sunVerticesSelector = createSelector(
-	[ringsSelector,slicesSelector,sliceDeltaSelector,sunRadiusSelector,sunHeightSelector,ringDeltaTopSelector,beamFullTopThetaSelector,beamThetaArraySelector,fullBeamCountSelector,arcRadiansSelector,radiusSelector,sphereFractionSelector,baseHeightSelector,bottomFaceIndicesSelector,x0Selector,y0Selector,x1Selector,y1Selector,useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector],
-	(rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount,arcRadians,radius,sphereFraction,baseHeight,bottomFaceIndices,x0,y0,x1,y1,useFlameBezier,beamLengthVertexCount, splitBeams) => {
+	[ringsSelector,slicesSelector,sliceDeltaSelector,sunRadiusSelector,sunHeightSelector,ringDeltaTopSelector,beamFullTopThetaSelector,beamThetaArraySelector,fullBeamCountSelector,arcRadiansSelector,radiusSelector,sphereFractionSelector,baseHeightSelector,bottomFaceIndicesSelector,x0Selector,y0Selector,x1Selector,y1Selector,useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector, wavyCountSelector, wavyScaleSelector, wavyAmountSelector],
+	(rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount,arcRadians,radius,sphereFraction,baseHeight,bottomFaceIndices,x0,y0,x1,y1,useFlameBezier,beamLengthVertexCount, splitBeams, wavyCount, wavyScale, wavyAmount) => {
 		const vertexData = [];
 		for (let i=0; i<rings; i++) { // latitude // stacked layers // the cap
 			const theta = i * ringDeltaTop; // need two passes, above beam top and below beam top.
@@ -450,13 +494,16 @@ const sunVerticesSelector = createSelector(
 				const isEndPiece = splitBeams && (j === 0 || j === slices);
 				const isTipSlice = (beamSlice === j);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
-					const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
-					const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
-					const regular = [x,y];
-					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1);
+					//const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
+					//const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
+					//const regular = [x,y];
+					//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+					const value = resolveBezier(useFlameBezier,x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
 					vertexData.push([
-						(useFlameBezier ? value[0] : x),
-						(useFlameBezier ? value[1] : y),
+						//(useFlameBezier ? value[0] : x),
+						//(useFlameBezier ? value[1] : y),
+						value[0],
+						value[1],
 						firstPoint[2] + (tipPoint[2] - firstPoint[2]) * a / beamLengthVertexCount
 					]);
 				}
@@ -465,13 +512,16 @@ const sunVerticesSelector = createSelector(
 				const onePoint = vertexData[oneIndex];
 				const bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // underside
-					const x = (onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount);
-					const y = (onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount);
-					const regular = [x,y];
-					const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1);
+					//const x = (onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount);
+					//const y = (onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount);
+					//const regular = [x,y];
+					//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
+					const value = resolveBezier(useFlameBezier,x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
 					vertexData.push([
-						(useFlameBezier ? value[0] : x),
-						(useFlameBezier ? value[1] : y),
+						//(useFlameBezier ? value[0] : x),
+						//(useFlameBezier ? value[1] : y),
+						value[0],
+						value[1],
 						onePoint[2] + (tipPoint[2] - onePoint[2]) * a / beamLengthVertexCount + pedestal
 					]);
 				}
@@ -497,12 +547,14 @@ const sunVerticesSelector = createSelector(
 				//const isEndPiece = false;
 				const topEdgeLength = lengthOfEdge(firstPoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // top side
-					const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
-					const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
-					const value = resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction);
+					//const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
+					//const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
+					const value = resolveBezier(useFlameBezier,x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,direction, false, wavyCount, wavyScale, wavyAmount);
 					vertexData.push([
-						useFlameBezier ? value[0] : x,
-						useFlameBezier ? value[1] : y,
+						//useFlameBezier ? value[0] : x,
+						//useFlameBezier ? value[1] : y,
+						value[0],
+						value[1],
 						firstPoint[2] + (tipPoint[2] - firstPoint[2]) * a / beamLengthVertexCount
 					]);
 				}
@@ -511,12 +563,14 @@ const sunVerticesSelector = createSelector(
 				const onePoint = vertexData[oneIndex];
 				const bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
 				for (let a=1; a<beamLengthVertexCount+1; a++) { // underside
-					const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
-					const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
-					const value = resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction);
+					//const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
+					//const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
+					const value = resolveBezier(useFlameBezier,x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,direction, false, wavyCount, wavyScale, wavyAmount);
 					vertexData.push([
-						useFlameBezier ? value[0] : x,
-						useFlameBezier ? value[1] : y,
+						//useFlameBezier ? value[0] : x,
+						//useFlameBezier ? value[1] : y,
+						value[0],
+						value[1],
 						onePoint[2] + (tipPoint[2] - onePoint[2]) * a / beamLengthVertexCount + pedestal
 					]);
 				}
@@ -588,8 +642,8 @@ const sunVerticesSelector = createSelector(
 
 
 const sunIndicesSelector = createSelector(
-	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector,flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugUnderSelector, beamLengthVertexCountSelector, splitBeamsSelector],
-	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugUnder, beamLengthVertexCount, splitBeams) => {
+	[sphereFractionSelector, ringsSelector, slicesSelector, beamThetaArraySelector, fullBeamCountSelector, bottomFaceIndicesSelector, baseHeightSelector,flatTopSelector, debugLeftSelector, debugRightSelector, debugTopSelector, debugBottomSelector, debugEvenSelector, debugOddSelector, debugFirstSelector, debugLastSelector, debugBaseSelector, beamLengthVertexCountSelector, splitBeamsSelector],
+	(sphereFraction, rings, slices, beamThetaArray, fullBeamCount, bottomFaceIndices, baseHeight, flatTop, debugLeft, debugRight, debugTop, debugBottom, debugEven, debugOdd, debugFirst, debugLast, debugBase, beamLengthVertexCount, splitBeams) => {
 		
 		
 		const indexData = [];
@@ -809,7 +863,7 @@ const sunIndicesSelector = createSelector(
 			const second = first + slices + 1;
 			indexData.push([anchor, first, second]);
 		}
-		if (!debugUnder) for (let j=0; j<slices; j++) { // original sun bottom, without beams
+		if (!debugBase) for (let j=0; j<slices; j++) { // original sun bottom, without beams
 			const first = sunUndersideStart + j;
 			const second = first + 1;
 			if (fakeExtrude && baseHeight > 0 && sphereFraction === "whole") indexData.push([underAnchorLoc, second, first]);
