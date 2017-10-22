@@ -3849,7 +3849,7 @@ var wavyScaleSelector = (0, _reselect.createSelector)([settingsSelector], functi
 	return Math.max(1, Math.min(32, settings.wavyScale * 1));
 });
 var wavyAmountSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
-	return Math.max(1, Math.min(32, settings.wavyAmount * 1));
+	return Math.max(0, Math.min(32, settings.wavyAmount * 1));
 });
 var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return Math.max(1, Math.min(100, settings.resolution * 1));
@@ -4199,44 +4199,78 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 	var xxx = fromX + (toX - fromX) * loc / per;
 	var yyy = fromY + (toY - fromY) * loc / per;
 
-	var beamAngle = Math.atan2(toY - fromY, toX - fromX);
+	var straightAngle = Math.atan2(toY - fromY, toX - fromX);
 	var eighth = Math.PI / 4;
-	var difference = beamAngle - eighth;
+	var difference = straightAngle - eighth;
 	if (typeof direction === "undefined") direction === 1;
 	var amount = loc / per;
+	var twopi = Math.PI * 2;
 
 	if (wavyAmount) {
 		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
 		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
 	}
 
-	if (isTipSliceOrEnd || !useFlameBezier) {
-		if (wavyAmount && isTipSliceOrEnd) {}
-		// 		const xx = (fromX + (toX - fromX) * loc / per);
-		// 		const yy = (fromY + (toY - fromY) * loc / per);
-		if (wavyAmount && isTipSliceOrEnd) {
-			//return x * Math.sin(wavyCount * x)/Math.PI*2;
-			//wavyX = xx * Math.cos(wavyCount * xx)/Math.PI*2;
-			//wavyY = yy * Math.sin(wavyCount * yy)/Math.PI*2;
+	var flip = 0; //Math.PI; // Math.PI or zero
 
+	var denominator = twopi * wavyAmount;
+	var valueX = amount * twopi;
+	var valueY = Math.sin(wavyCount * (valueX - twopi) - flip) * (valueX - twopi) / denominator;
+
+	// 	const angle = Math.atan2(valueY,valueX) + beamAngle;
+	// 	const dist = Math.hypot(valueX,valueY);
+
+
+	if (isTipSliceOrEnd || !useFlameBezier) {
+
+		//if (isTipSliceOrEnd) {
+		var _angle = Math.atan2(valueY, valueX) + straightAngle;
+		var _dist = Math.hypot(valueX, valueY);
+		var _X = fromX + Math.cos(_angle) * _dist * length / twopi;
+		var _Y = fromY + Math.sin(_angle) * _dist * length / twopi;
+		var _result = [_X, _Y];
+		//console.log("wavy X:%s; Y:%s;",X,Y);
+		return _result;
+		//}
+		if (wavyAmount) {
+			//return [wavyX + xxx, wavyY + yyy];
 		}
-		return [wavyX + xxx, wavyY + yyy];
 	}
 
 	var X = [0, direction < 0 ? y0 : x0, direction < 0 ? y1 : x1, 1];
 	var Y = [0, direction < 0 ? x0 : y0, direction < 0 ? x1 : y1, 1];
 	var x = cubic(X, amount);
 	var y = cubic(Y, amount);
-	var bezierAngle = Math.atan2(y, x) + difference;
-	//const bezierAngle = Math.atan2(yyy,xxx) + difference;
-	var xx = wavyX + fromX + Math.cos(bezierAngle) * length * amount;
-	var yy = wavyY + fromY + Math.sin(bezierAngle) * length * amount;
-	var result = [xx, yy];
+	var flameAngle = Math.atan2(y, x) + difference;
+	//const flameAngle = Math.atan2(yyy,xxx) + difference;
+	var angle = Math.atan2(valueY, valueX) + straightAngle;
+	var dist = Math.hypot(valueX, valueY);
 
+	if (wavyAmount) {
+
+		var wavyAngle = Math.atan2(valueY, valueX) + (useFlameBezier ? flameAngle : 0);
+		//const angle = Math.atan2(valueY,valueX) + beamAngle;
+		var _dist2 = Math.hypot(valueX, valueY);
+		var _X2 = fromX + Math.cos(wavyAngle) * _dist2 * length / twopi;
+		var _Y2 = fromY + Math.sin(wavyAngle) * _dist2 * length / twopi;
+		var _result2 = [_X2, _Y2];
+		//console.log("wavy X:%s; Y:%s;",X,Y);
+		return _result2;
+
+		// 		const X = fromX + Math.cos(bezierAngle) * dist * length / twopi;
+		// 		const Y = fromY + Math.sin(bezierAngle) * dist * length / twopi;
+		// 		const result = [X, Y];
+		// 		//console.log("wavy:",result);
+		// 		return result;
+	}
+	var xx = wavyX + fromX + Math.cos(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
+	var yy = wavyY + fromY + Math.sin(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
+	var result = [xx, yy];
 	return result;
 }
 
 function lengthOfEdge(firstPoint, tipPoint) {
+	// this may not be quite right, on top
 	return Math.hypot(firstPoint[0] - tipPoint[0], firstPoint[1] - tipPoint[1]);
 }
 

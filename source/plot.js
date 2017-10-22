@@ -40,7 +40,7 @@ const sphereFractionSelector = createSelector([settingsSelector], settings => se
 const beamCountSelector = createSelector([settingsSelector,sphereFractionSelector], (settings,sphereFraction) => Math.max(1, Math.min(32, sphereFraction === "quarter" ? Math.floor(settings.beamCount * 1) : settings.beamCount * 1)));
 const wavyCountSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyCount * 1)));
 const wavyScaleSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyScale * 1)));
-const wavyAmountSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyAmount * 1)));
+const wavyAmountSelector = createSelector([settingsSelector], (settings) => Math.max(0, Math.min(32, settings.wavyAmount * 1)));
 const resolutionSelector = createSelector([settingsSelector], settings => Math.max(1, Math.min(100, settings.resolution * 1))); // segments per quarter circle, for both latitude and longitude
 const ringsSelector = createSelector([resolutionSelector], resolution => resolution * 1); // latitude // stacked ring layers
 const radiusSelector = createSelector([settingsSelector], settings => settings.radius * 1);
@@ -371,49 +371,77 @@ function resolveBezier(useFlameBezier,x0,y0,x1,y1,fromX,fromY,toX,toY,loc,per,le
 	const xxx = (fromX + (toX - fromX) * loc / per);
 	const yyy = (fromY + (toY - fromY) * loc / per);
 
-	const beamAngle = Math.atan2(toY-fromY, toX-fromX);
+	const straightAngle = Math.atan2(toY-fromY, toX-fromX);
 	const eighth = Math.PI / 4;
-	const difference = beamAngle-eighth;
+	const difference = straightAngle-eighth;
 	if (typeof direction === "undefined") direction === 1;
 	const amount = loc / per;
-
+	const twopi = Math.PI * 2;
 
 	if (wavyAmount) {
 		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
 		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
 	}
 	
-	if (isTipSliceOrEnd || !useFlameBezier) {
-		if (wavyAmount && isTipSliceOrEnd) {
-			
-		}
-// 		const xx = (fromX + (toX - fromX) * loc / per);
-// 		const yy = (fromY + (toY - fromY) * loc / per);
-		if (wavyAmount && isTipSliceOrEnd) {
-			//return x * Math.sin(wavyCount * x)/Math.PI*2;
-			//wavyX = xx * Math.cos(wavyCount * xx)/Math.PI*2;
-			//wavyY = yy * Math.sin(wavyCount * yy)/Math.PI*2;
-			
-		}
-		return [wavyX + xxx, wavyY + yyy];
-	}
+	const flip = 0;//Math.PI; // Math.PI or zero
 
+	const denominator = twopi * wavyAmount;
+	const valueX = amount * twopi;
+	const valueY = Math.sin(wavyCount * (valueX-twopi) - flip) * (valueX-twopi) / denominator;
+	
+// 	const angle = Math.atan2(valueY,valueX) + beamAngle;
+// 	const dist = Math.hypot(valueX,valueY);
+	
+	
+	if (isTipSliceOrEnd || !useFlameBezier) {
+
+		//if (isTipSliceOrEnd) {
+			const angle = Math.atan2(valueY,valueX) + straightAngle;
+			const dist = Math.hypot(valueX,valueY);
+			const X = fromX + Math.cos(angle) * dist * length / twopi;
+			const Y = fromY + Math.sin(angle) * dist * length / twopi;
+			const result =  [X, Y];
+			//console.log("wavy X:%s; Y:%s;",X,Y);
+			return result;
+		//}
+		if (wavyAmount) {
+			//return [wavyX + xxx, wavyY + yyy];
+		}
+	}
 
 	const X = [0, direction < 0 ? y0 : x0, direction < 0 ? y1 : x1, 1];
 	const Y = [0, direction < 0 ? x0 : y0, direction < 0 ? x1 : y1, 1];
 	const x = cubic(X, amount);
 	const y = cubic(Y, amount);
-	const bezierAngle = Math.atan2(y,x) + difference;
-	//const bezierAngle = Math.atan2(yyy,xxx) + difference;
-	const xx = wavyX + fromX + Math.cos(bezierAngle) * length * amount;
-	const yy = wavyY + fromY + Math.sin(bezierAngle) * length * amount;
-	const result =  [xx, yy];
+	const flameAngle = Math.atan2(y,x) + difference;
+	//const flameAngle = Math.atan2(yyy,xxx) + difference;
+	const angle = Math.atan2(valueY,valueX) + straightAngle;
+	const dist = Math.hypot(valueX,valueY);
 
-	
+	if (wavyAmount) {
+
+		const wavyAngle = Math.atan2(valueY,valueX) + (useFlameBezier ? flameAngle : 0);
+		//const angle = Math.atan2(valueY,valueX) + beamAngle;
+		const dist = Math.hypot(valueX,valueY);
+		const X = fromX + Math.cos(wavyAngle) * dist * length / twopi;
+		const Y = fromY + Math.sin(wavyAngle) * dist * length / twopi;
+		const result =  [X, Y];
+		//console.log("wavy X:%s; Y:%s;",X,Y);
+		return result;
+
+// 		const X = fromX + Math.cos(bezierAngle) * dist * length / twopi;
+// 		const Y = fromY + Math.sin(bezierAngle) * dist * length / twopi;
+// 		const result = [X, Y];
+// 		//console.log("wavy:",result);
+// 		return result;
+	}
+	const xx = wavyX + fromX + Math.cos(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
+	const yy = wavyY + fromY + Math.sin(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
+	const result =  [xx, yy];
 	return result;
 }
 
-function lengthOfEdge(firstPoint, tipPoint) {
+function lengthOfEdge(firstPoint, tipPoint) { // this may not be quite right, on top
 	return Math.hypot(firstPoint[0]-tipPoint[0], firstPoint[1]-tipPoint[1]);
 }
 
