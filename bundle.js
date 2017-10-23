@@ -4196,9 +4196,6 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 	var waveX = 1;
 	var waveY = 1;
 
-	var xxx = fromX + (toX - fromX) * loc / per;
-	var yyy = fromY + (toY - fromY) * loc / per;
-
 	var straightAngle = Math.atan2(toY - fromY, toX - fromX);
 	var eighth = Math.PI / 4;
 	var difference = straightAngle - eighth;
@@ -4206,34 +4203,24 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 	var amount = loc / per;
 	var twopi = Math.PI * 2;
 
-	if (wavyAmount) {
-		//wavyX = x * Math.cos(wavyCount * x)/Math.PI*2;
-		//wavyY = y * Math.sin(wavyCount * y)/Math.PI*2;
-	}
-
 	var flip = 0; //Math.PI; // Math.PI or zero
 
 	var denominator = twopi * wavyAmount;
 	var valueX = amount * twopi;
 	var valueY = Math.sin(wavyCount * (valueX - twopi) - flip) * (valueX - twopi) / denominator;
 
-	// 	const angle = Math.atan2(valueY,valueX) + beamAngle;
-	// 	const dist = Math.hypot(valueX,valueY);
-
-
 	if (isTipSliceOrEnd || !useFlameBezier) {
-
-		//if (isTipSliceOrEnd) {
-		var _angle = Math.atan2(valueY, valueX) + straightAngle;
-		var _dist = Math.hypot(valueX, valueY);
-		var _X = fromX + Math.cos(_angle) * _dist * length / twopi;
-		var _Y = fromY + Math.sin(_angle) * _dist * length / twopi;
-		var _result = [_X, _Y];
-		//console.log("wavy X:%s; Y:%s;",X,Y);
-		return _result;
-		//}
 		if (wavyAmount) {
-			//return [wavyX + xxx, wavyY + yyy];
+			var _angle = Math.atan2(valueY, valueX) + straightAngle;
+			var _dist = Math.hypot(valueX, valueY);
+			var _X = fromX + Math.cos(_angle) * _dist * length / twopi;
+			var _Y = fromY + Math.sin(_angle) * _dist * length / twopi;
+			var _result = [_X, _Y];
+			return _result;
+		} else {
+			var _X2 = fromX + (toX - fromX) * loc / per;
+			var _Y2 = fromY + (toY - fromY) * loc / per;
+			return [_X2, _Y2];
 		}
 	}
 
@@ -4242,29 +4229,20 @@ function resolveBezier(useFlameBezier, x0, y0, x1, y1, fromX, fromY, toX, toY, l
 	var x = cubic(X, amount);
 	var y = cubic(Y, amount);
 	var flameAngle = Math.atan2(y, x) + difference;
-	//const flameAngle = Math.atan2(yyy,xxx) + difference;
 	var angle = Math.atan2(valueY, valueX) + straightAngle;
 	var dist = Math.hypot(valueX, valueY);
 
 	if (wavyAmount) {
-
-		var wavyAngle = Math.atan2(valueY, valueX) + (useFlameBezier ? flameAngle : 0);
-		//const angle = Math.atan2(valueY,valueX) + beamAngle;
+		var wavyAngle = Math.atan2(valueY, valueX) + flameAngle;
 		var _dist2 = Math.hypot(valueX, valueY);
-		var _X2 = fromX + Math.cos(wavyAngle) * _dist2 * length / twopi;
-		var _Y2 = fromY + Math.sin(wavyAngle) * _dist2 * length / twopi;
-		var _result2 = [_X2, _Y2];
-		//console.log("wavy X:%s; Y:%s;",X,Y);
+		var XX = fromX + Math.cos(wavyAngle) * _dist2 * length / twopi;
+		var YY = fromY + Math.sin(wavyAngle) * _dist2 * length / twopi;
+		var _result2 = [XX, YY];
 		return _result2;
-
-		// 		const X = fromX + Math.cos(bezierAngle) * dist * length / twopi;
-		// 		const Y = fromY + Math.sin(bezierAngle) * dist * length / twopi;
-		// 		const result = [X, Y];
-		// 		//console.log("wavy:",result);
-		// 		return result;
 	}
-	var xx = wavyX + fromX + Math.cos(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
-	var yy = wavyY + fromY + Math.sin(useFlameBezier ? bezierAngle : straightAngle) * length * amount;
+	var bezierAngle = Math.atan2(y, x) + difference;
+	var xx = wavyX + fromX + Math.cos(bezierAngle) * length * amount;
+	var yy = wavyY + fromY + Math.sin(bezierAngle) * length * amount;
 	var result = [xx, yy];
 	return result;
 }
