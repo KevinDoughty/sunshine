@@ -1,7 +1,8 @@
 import { h, Component } from "preact";
 //import { bind } from "decko";
 
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "./actions.js";
 
 import Primary from "./primary.js";
@@ -181,6 +182,7 @@ class Interact extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
+	//const state = outerState.main;
 	return Object.assign({}, state, ownProps);
 }
 const ConnectedInteract = connect(mapStateToProps, actions)(Interact);

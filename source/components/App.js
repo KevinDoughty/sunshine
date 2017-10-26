@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "../actions.js";
 
 import PairView from "./PairView.js";
@@ -27,7 +28,6 @@ class App extends Component {
 		this.setState({ width, height });
 	}
 	render(props,state) {
-
 		const dividerWidth = 9.0;
 		const width = document.body.offsetWidth;
 		const height = document.body.offsetHeight;
@@ -43,7 +43,6 @@ class App extends Component {
 			draggingDivider:this.props.draggingDivider,
 			frame:pairFrame
 		}
-
 		return (
 			<PairView {...pairProps} >
 				<ListPane fileName="sunshine" />
@@ -62,6 +61,11 @@ class App extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
+	//console.log("mapState:",outerState);
+	//console.log("toProps:",ownProps);
+	//const state = outerState.main;
+	//const state = Object.assign({ router: outerState.router }, outerState.main );
+	//console.log("result:",state);
 	return Object.assign({}, state, ownProps);
 }
 const ConnectedApp = connect(mapStateToProps, actions)(App);

@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "../actions.js";
 import * as plot from "../plot.js";
 
@@ -57,6 +58,7 @@ class ListHeader extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
+	//const state = outerState.main;
 	return Object.assign({}, ownProps, {
 		mesh: plot.meshSelector(state),
 		debugging: plot.debuggingSelector(state),

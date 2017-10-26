@@ -52,14 +52,11 @@
     "preact": "^8.1.0",
     "preact-compat": "^3.16.0",
     "preact-redux": "^2.0.2",
-    "preact-small-redux": "^1.0.0",
-    "qs": "^6.5.1",
     "query-string": "^4.3.4",
     "raw-loader": "^0.5.1",
+    "react-redux": "^5.0.6",
     "redux": "^3.7.1",
-    "redux-little-router": "^14.2.0",
     "reselect": "^3.0.1",
-    "small-redux": "^1.0.0",
     "ycam": "^1.0.2"
   },
   "license": "Apache-2.0"

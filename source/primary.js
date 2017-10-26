@@ -6,7 +6,8 @@
 import { h, Component } from "preact";
 //import { bind } from "decko";
 
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "./actions.js";
 import * as plot from "./plot.js";
 
@@ -194,6 +195,7 @@ class Primary extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
+	//const state = outerState.main;
 	return Object.assign({}, ownProps, {
 		now: state.now,
 		mesh: plot.meshSelector(state)

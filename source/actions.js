@@ -1,3 +1,6 @@
+//import { PUSH } from 'redux-little-router';
+
+
 export const UNDO = "UNDO";
 export const REDO = "REDO";
 
@@ -16,19 +19,23 @@ export const CHANGE_TEXT = "CHANGE_TEXT";
 export const SHIFT_KEY_PRESS = "SHIFT_KEY_PRESS";
 
 export const CHANGE_SETTING = "CHANGE_SETTING";
+export const CHANGE_SETTINGS = "CHANGE_SETTINGS";
+
+export const INITIALIZE_PART_ONE = "INITIALIZE_PART_ONE";
+export const INITIALIZE_PART_TWO = "INITIALIZE_PART_TWO";
 
 const undoable = true;
 const preserve = true;
 const coalesce = true;
 
 export function undo() {
-	return{
+	return {
 		type: UNDO
 	};
 }
 
 export function redo() {
-	return{
+	return {
 		type: REDO
 	};
 }
@@ -112,7 +119,7 @@ export function shiftKeyPress(value) {
 	};
 }
 
-export function changeSetting(nodeId,value) {
+export function changeSetting(nodeId,value) { // nodeId can be an array for multiple values
 	return {
 		type: CHANGE_SETTING,
 		nodeId,
@@ -120,4 +127,17 @@ export function changeSetting(nodeId,value) {
 		undoable,
 		coalesce
 	};
+}
+
+export function initializePartOne() {
+	return {
+		type: INITIALIZE_PART_ONE
+	}
+}
+
+export function initializePartTwo(data) {
+	return {
+		type: INITIALIZE_PART_TWO,
+		data
+	}
 }

@@ -24,11 +24,13 @@ const BezierCell = (class extends Component {
 		const changeSetting = this.props.changeSetting;
 		const variables = this.props.node.choiceIds;
 		if (dragging === 1) {
-			changeSetting(variables[0],x/dimension);
-			changeSetting(variables[1],y/dimension);
+			changeSetting([variables[0], variables[1]], [x/dimension, y/dimension])
+			//changeSetting(variables[0],x/dimension);
+			//changeSetting(variables[1],y/dimension);
 		} else if (dragging === 2) {
-			changeSetting(variables[2],x/dimension);
-			changeSetting(variables[3],y/dimension);
+			changeSetting([variables[2], variables[3]], [x/dimension, y/dimension])
+			//changeSetting(variables[2],x/dimension);
+			//changeSetting(variables[3],y/dimension);
 		}
 	}
 	mouseUp(e) {

@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "../actions.js";
 import * as selectors from "../selectors.js";
 import ListRow from "./ListRow.js";
@@ -55,6 +56,7 @@ const ListView = class extends Component {
 };
 
 function mapStateToProps(state, ownProps) {
+	//const state = outerState.main;
 	return Object.assign({}, ownProps, {
 		exposedIds: selectors.exposedIdsSelector(state),
 		normalizedTreeDict: selectors.normalizedTreeDictSelector(state),

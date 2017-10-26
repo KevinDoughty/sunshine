@@ -18,10 +18,10 @@ const debug = [
 ];
 
 const flameBezierValues = [
-	{ "id": "x0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1},
-	{ "id": "y0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.4},
-	{ "id": "x1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2},
-	{ "id": "y1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3}
+	{ "id": "flameX0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1},
+	{ "id": "flameY0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.4},
+	{ "id": "flameX1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2},
+	{ "id": "flameY1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3}
 ];
 
 // const notImplemented = [
@@ -36,9 +36,9 @@ const sun = [
 	{ "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }
 ];
 const wavy = [
+	{ "id": "enableWavy", "displayName": "Enable", "type": "bool", "default": true },
 	{ "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 },
-	{ "id": "wavyScale", "displayName": "Scale", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 },
-	{ "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 },
+	{ "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 2.0 },
 ];
 const beam = [
 	{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---

@@ -1,6 +1,7 @@
 import { h, Component, cloneElement } from "preact";
 import Divider from "./Divider.js";
-import { connect } from "preact-redux";
+//import { connect } from "preact-redux";
+import { connect } from "react-redux";
 import * as actions from "../actions.js";
 
 var PairView = (class extends Component {
@@ -98,6 +99,7 @@ var PairView = (class extends Component {
 });
 
 function mapStateToProps(state, ownProps) {
+	//const state = outerState.main;
 	return { draggingDivider: state.draggingDivider };
 }
 

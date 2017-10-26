@@ -13,7 +13,11 @@ module.exports = [
 			filename: "bundle.js"
 		},
 		resolve: {
-			extensions: [ ".js", ".jsx", ".glsl", ".frag", ".vert" ]
+			extensions: [ ".js", ".jsx", ".glsl", ".frag", ".vert" ],
+			alias: {
+				"react": "preact-compat",
+				"react-dom": "preact-compat",
+			}
 		},
 		module: {
 			loaders: [
