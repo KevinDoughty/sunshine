@@ -12625,12 +12625,8 @@ var BezierCell = function (_Component) {
 			var variables = this.props.node.choiceIds;
 			if (dragging === 1) {
 				changeSetting([variables[0], variables[1]], [x / dimension, y / dimension], { continuous: continuous });
-				//changeSetting(variables[0],x/dimension);
-				//changeSetting(variables[1],y/dimension);
 			} else if (dragging === 2) {
 				changeSetting([variables[2], variables[3]], [x / dimension, y / dimension], { continuous: continuous });
-				//changeSetting(variables[2],x/dimension);
-				//changeSetting(variables[3],y/dimension);
 			}
 		}
 	}, {
