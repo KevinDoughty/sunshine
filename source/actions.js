@@ -6,27 +6,22 @@ export const REDO = "REDO";
 
 export const RESIZE_DIVIDER = "RESIZE_DIVIDER";
 export const SET_DRAGGING_DIVIDER = "SET_DRAGGING_DIVIDER";
-//export const CHANGE_SHAPE = "CHANGE_SHAPE";
 
 export const CHANGE_WORLD_ROTATION = "CHANGE_WORLD_ROTATION";
 export const CHANGE_CAMERA_ORIENTATION = "CHANGE_CAMERA_ORIENTATION";
 export const RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION = "RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION";
 
 export const DISCLOSURE_TOGGLE = "DISCLOSURE_TOGGLE";
-export const SELECT_NODE = "SELECT_NODE";
-export const EDIT_NODE = "EDIT_NODE";
-export const CHANGE_TEXT = "CHANGE_TEXT";
-export const SHIFT_KEY_PRESS = "SHIFT_KEY_PRESS";
 
 export const CHANGE_SETTING = "CHANGE_SETTING";
-export const CHANGE_SETTINGS = "CHANGE_SETTINGS";
 
 export const INITIALIZE_PART_ONE = "INITIALIZE_PART_ONE";
 export const INITIALIZE_PART_TWO = "INITIALIZE_PART_TWO";
 
-const undoable = true;
-const preserve = true;
-const coalesce = true;
+const undoable = true; // registers change for undo
+const preserve = true; // gets registered , but only by a different, undoable action.
+const coalesce = true; // coalesce undo registration
+const continuous = true; // disable URL queryState updates // if true, controls don't update queryState, until you dispatch false. // not used, but changeSetting allows passing options to override, for the bezier control (Safari will throw an error if replaceState is called 100 times in 30 seconds)
 
 export function undo() {
 	return {
@@ -86,47 +81,20 @@ export function disclosureToggle(nodeId) {
 	};
 }
 
-export function selectNode(nodeId) {
-	return {
-		type: SELECT_NODE,
-		nodeId,
-		preserve
-	};
-}
-
-export function editNode(nodeId) {
-	return {
-		type: EDIT_NODE,
-		nodeId,
-		preserve
-	};
-}
-
-export function changeText(nodeId,text) {
-	return {
-		type: CHANGE_TEXT,
-		nodeId,
-		text,
-		undoable,
-		coalesce
-	};
-}
-
-export function shiftKeyPress(value) {
-	return {
-		type: SHIFT_KEY_PRESS,
-		value
-	};
-}
-
-export function changeSetting(nodeId,value) { // nodeId can be an array for multiple values
-	return {
+export function changeSetting(nodeId,value,options) { // nodeId can be an array for multiple values // No longer has multiple selection, but now values can be an array too, for changing bezier x & y. // options are for suppressing continuous controls from calling replaceState repeatedly and throwing an error in Safari for too much activity
+	const result = {
 		type: CHANGE_SETTING,
 		nodeId,
 		value,
 		undoable,
 		coalesce
 	};
+	if (options) {
+		Object.keys(options).forEach(key => {
+			result[key] = options[key];
+		});
+	}
+	return result;
 }
 
 export function initializePartOne() {

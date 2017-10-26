@@ -1337,10 +1337,6 @@ exports.changeWorldRotation = changeWorldRotation;
 exports.changeCameraOrientation = changeCameraOrientation;
 exports.resetWorldRotationAndCameraOrientation = resetWorldRotationAndCameraOrientation;
 exports.disclosureToggle = disclosureToggle;
-exports.selectNode = selectNode;
-exports.editNode = editNode;
-exports.changeText = changeText;
-exports.shiftKeyPress = shiftKeyPress;
 exports.changeSetting = changeSetting;
 exports.initializePartOne = initializePartOne;
 exports.initializePartTwo = initializePartTwo;
@@ -1352,27 +1348,22 @@ var REDO = exports.REDO = "REDO";
 
 var RESIZE_DIVIDER = exports.RESIZE_DIVIDER = "RESIZE_DIVIDER";
 var SET_DRAGGING_DIVIDER = exports.SET_DRAGGING_DIVIDER = "SET_DRAGGING_DIVIDER";
-//export const CHANGE_SHAPE = "CHANGE_SHAPE";
 
 var CHANGE_WORLD_ROTATION = exports.CHANGE_WORLD_ROTATION = "CHANGE_WORLD_ROTATION";
 var CHANGE_CAMERA_ORIENTATION = exports.CHANGE_CAMERA_ORIENTATION = "CHANGE_CAMERA_ORIENTATION";
 var RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION = exports.RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION = "RESET_WORLD_ROTATION_AND_CAMERA_ORIENTATION";
 
 var DISCLOSURE_TOGGLE = exports.DISCLOSURE_TOGGLE = "DISCLOSURE_TOGGLE";
-var SELECT_NODE = exports.SELECT_NODE = "SELECT_NODE";
-var EDIT_NODE = exports.EDIT_NODE = "EDIT_NODE";
-var CHANGE_TEXT = exports.CHANGE_TEXT = "CHANGE_TEXT";
-var SHIFT_KEY_PRESS = exports.SHIFT_KEY_PRESS = "SHIFT_KEY_PRESS";
 
 var CHANGE_SETTING = exports.CHANGE_SETTING = "CHANGE_SETTING";
-var CHANGE_SETTINGS = exports.CHANGE_SETTINGS = "CHANGE_SETTINGS";
 
 var INITIALIZE_PART_ONE = exports.INITIALIZE_PART_ONE = "INITIALIZE_PART_ONE";
 var INITIALIZE_PART_TWO = exports.INITIALIZE_PART_TWO = "INITIALIZE_PART_TWO";
 
-var undoable = true;
-var preserve = true;
-var coalesce = true;
+var undoable = true; // registers change for undo
+var preserve = true; // gets registered , but only by a different, undoable action.
+var coalesce = true; // coalesce undo registration
+var continuous = true; // disable URL queryState updates // if true, controls don't update queryState, until you dispatch false. // not used, but changeSetting allows passing options to override, for the bezier control (Safari will throw an error if replaceState is called 100 times in 30 seconds)
 
 function undo() {
 	return {
@@ -1432,48 +1423,21 @@ function disclosureToggle(nodeId) {
 	};
 }
 
-function selectNode(nodeId) {
-	return {
-		type: SELECT_NODE,
-		nodeId: nodeId,
-		preserve: preserve
-	};
-}
-
-function editNode(nodeId) {
-	return {
-		type: EDIT_NODE,
-		nodeId: nodeId,
-		preserve: preserve
-	};
-}
-
-function changeText(nodeId, text) {
-	return {
-		type: CHANGE_TEXT,
-		nodeId: nodeId,
-		text: text,
-		undoable: undoable,
-		coalesce: coalesce
-	};
-}
-
-function shiftKeyPress(value) {
-	return {
-		type: SHIFT_KEY_PRESS,
-		value: value
-	};
-}
-
-function changeSetting(nodeId, value) {
-	// nodeId can be an array for multiple values
-	return {
+function changeSetting(nodeId, value, options) {
+	// nodeId can be an array for multiple values // No longer has multiple selection, but now values can be an array too, for changing bezier x & y. // options are for suppressing continuous controls from calling replaceState repeatedly and throwing an error in Safari for too much activity
+	var result = {
 		type: CHANGE_SETTING,
 		nodeId: nodeId,
 		value: value,
 		undoable: undoable,
 		coalesce: coalesce
 	};
+	if (options) {
+		Object.keys(options).forEach(function (key) {
+			result[key] = options[key];
+		});
+	}
+	return result;
 }
 
 function initializePartOne() {
@@ -10865,9 +10829,11 @@ var logger = exports.logger = function logger(store) {
 				if (action.type === actions.CHANGE_SETTING) {
 					finalData[action.nodeId] = action.value;
 				}
-				var query = "?" + (0, _queryString.stringify)(finalData); // question mark shouldn't be necessary according to queryString.stringify docs
-				var storage = undefined;
-				history.replace(query, storage);
+				if (!action.continuous) {
+					var query = "?" + (0, _queryString.stringify)(finalData); // question mark shouldn't be necessary according to queryString.stringify docs
+					var storage = undefined;
+					history.replace(query, storage);
+				}
 				if (changed) {
 					var actionTwo = actions.initializePartTwo(finalData);
 					next(actionTwo);
@@ -12645,6 +12611,11 @@ var BezierCell = function (_Component) {
 	_createClass(BezierCell, [{
 		key: "mouseMove",
 		value: function mouseMove(e) {
+			this.handleMouseChange(e, true);
+		}
+	}, {
+		key: "handleMouseChange",
+		value: function handleMouseChange(e, continuous) {
 			var dimension = this.dimension;
 			var rect = this.rect;
 			var x = e.clientX - rect.left;
@@ -12653,11 +12624,11 @@ var BezierCell = function (_Component) {
 			var changeSetting = this.props.changeSetting;
 			var variables = this.props.node.choiceIds;
 			if (dragging === 1) {
-				changeSetting([variables[0], variables[1]], [x / dimension, y / dimension]);
+				changeSetting([variables[0], variables[1]], [x / dimension, y / dimension], { continuous: continuous });
 				//changeSetting(variables[0],x/dimension);
 				//changeSetting(variables[1],y/dimension);
 			} else if (dragging === 2) {
-				changeSetting([variables[2], variables[3]], [x / dimension, y / dimension]);
+				changeSetting([variables[2], variables[3]], [x / dimension, y / dimension], { continuous: continuous });
 				//changeSetting(variables[2],x/dimension);
 				//changeSetting(variables[3],y/dimension);
 			}
@@ -12665,6 +12636,7 @@ var BezierCell = function (_Component) {
 	}, {
 		key: "mouseUp",
 		value: function mouseUp(e) {
+			this.handleMouseChange(e, false); // Needed to update query string, suppressed on mouseMove. Can't update 100 times in 30 seconds or Safari will throw an error
 			document.removeEventListener("mousemove", this.mouseMove);
 			document.removeEventListener("mouseup", this.mouseUp);
 			this.dragging = 0;
@@ -13797,8 +13769,6 @@ ListLayout.prototype = {
 			node: node,
 			collapsed: collapsed,
 			depth: depth,
-			editNode: this.editNode,
-			changeText: this.changeText,
 			disclosureToggle: this.disclosureToggle,
 			changeUndoRegistered: this.changeUndoRegistered,
 			inLiveResize: this.inLiveResize,

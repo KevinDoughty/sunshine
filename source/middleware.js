@@ -41,9 +41,11 @@ export const logger = store => next => action => {
 		if (action.type === actions.CHANGE_SETTING) {
 			finalData[action.nodeId] = action.value;
 		}
-		const query = "?" + stringify(finalData); // question mark shouldn't be necessary according to queryString.stringify docs
-		const storage = undefined;
-		history.replace(query, storage);
+		if (!action.continuous) { 
+			const query = "?" + stringify(finalData); // question mark shouldn't be necessary according to queryString.stringify docs
+			const storage = undefined;
+			history.replace(query, storage);
+		}
 		if (changed) {
 			const actionTwo = actions.initializePartTwo(finalData);
 			next(actionTwo);

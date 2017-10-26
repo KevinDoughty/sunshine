@@ -103,8 +103,6 @@ ListLayout.prototype = {
 			node,
 			collapsed,
 			depth,
-			editNode: this.editNode,
-			changeText: this.changeText,
 			disclosureToggle: this.disclosureToggle,
 			changeUndoRegistered: this.changeUndoRegistered,
 			inLiveResize: this.inLiveResize,

@@ -16,6 +16,9 @@ const BezierCell = (class extends Component {
 		this.rect = null;
 	}
 	mouseMove(e) {
+		this.handleMouseChange(e, true);
+	}
+	handleMouseChange(e, continuous) {
 		const dimension = this.dimension;
 		const rect = this.rect;
 		const x = e.clientX - rect.left;
@@ -24,16 +27,17 @@ const BezierCell = (class extends Component {
 		const changeSetting = this.props.changeSetting;
 		const variables = this.props.node.choiceIds;
 		if (dragging === 1) {
-			changeSetting([variables[0], variables[1]], [x/dimension, y/dimension])
+			changeSetting([variables[0], variables[1]], [x/dimension, y/dimension], { continuous })
 			//changeSetting(variables[0],x/dimension);
 			//changeSetting(variables[1],y/dimension);
 		} else if (dragging === 2) {
-			changeSetting([variables[2], variables[3]], [x/dimension, y/dimension])
+			changeSetting([variables[2], variables[3]], [x/dimension, y/dimension], { continuous })
 			//changeSetting(variables[2],x/dimension);
 			//changeSetting(variables[3],y/dimension);
 		}
 	}
 	mouseUp(e) {
+		this.handleMouseChange(e, false); // Needed to update query string, suppressed on mouseMove. Can't update 100 times in 30 seconds or Safari will throw an error
 		document.removeEventListener("mousemove",this.mouseMove);
 		document.removeEventListener("mouseup",this.mouseUp);
 		this.dragging = 0;
