@@ -29,7 +29,7 @@ const BoolCell = (class extends Component {
 				zIndex: 1,
 				width:"16px",
 				height:"20px",
-				marginTop:"-1px" // !!! one pixel shift
+				marginTop:"-1px" // !!! This must go
 			}
 		};
 

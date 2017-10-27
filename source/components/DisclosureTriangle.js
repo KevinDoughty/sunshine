@@ -5,7 +5,7 @@ const DisclosureTriangle = props => {
 	var collapsed = props.collapsed;
 	var color = "darkgray";
 	var style = {
-		position: "relative",
+		position: "absolute",
 		marginTop: "5px",
 		marginBottom: "-10px",
 		borderStyle: "solid",

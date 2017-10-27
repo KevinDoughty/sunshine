@@ -247,13 +247,13 @@ function normalizedTreeDict(state = initialTreeDict, action) {
 		} else {
 			const node = source[nodeId];
 			if (node.type === "array") {
-				const array = action.value.split(",").map(parseFloat);
-				const choiceIds = node.choiceIds;
-				choiceIds.forEach( (id,index) => {
-					const subAction = Object.assign({},action,{ nodeId: id, value:array[index] });
-					normalizedTreeDict[id] = treeNode(source[id], subAction);
-				});
-		
+				//console.log("reducers action.value:",action.value); // undefined ?!
+				//const array = action.value.split(",").map(parseFloat);
+// 				const choiceIds = node.choiceIds;
+// 				choiceIds.forEach( (id,index) => {
+// 					const subAction = Object.assign({},action,{ nodeId: id, value:array[index] });
+// 					normalizedTreeDict[id] = treeNode(source[id], subAction);
+// 				});
 			} else {
 				normalizedTreeDict[nodeId] = treeNode(source[nodeId], action);
 				if (typeof parentId !== "undefined") normalizedTreeDict[parentId] = parentNode(source[parentId], action);

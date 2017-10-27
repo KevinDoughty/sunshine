@@ -44,6 +44,7 @@ const ListRow = (class extends Component {
 	}
 
 	handleCheckClick(e) {
+		console.log("check",this.props.id);
 		e.stopPropagation(); // prevent selecting text with shiftKeyPressed
 		e.preventDefault(); // prevent selecting text with shiftKeyPressed
 		this.props.disclosureToggle(this.props.id);
@@ -63,18 +64,17 @@ const ListRow = (class extends Component {
 
 		let height = this.props.frame.size.height;
 		if (node.type === "bezier") height = 100; // ugh
-		
 
 		const style = Object.assign({
 			boxSizing: "border-box",
 			paddingLeft: padding + "px",
 			opacity: this.props.opacity,
 			zIndex: this.props.zIndex,
-			
 			left: left + "px",
 			width: "100%",
 			height: height + "px",
-			whiteSpace: "nowrap"
+			whiteSpace: "nowrap",
+			outline:"red"
 		}, this.props.style);
 
 
@@ -145,7 +145,8 @@ const ListRow = (class extends Component {
 				cursor: "pointer",
 				opacity:0,
 				width:"16px",
-				height:"20px"
+				height:"20px",
+				backgroundColor:"orange"
 			}
 		};
 		const disclosureProps = {

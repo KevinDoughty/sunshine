@@ -11147,12 +11147,13 @@ function normalizedTreeDict() {
 		} else {
 			var node = source[nodeId];
 			if (node.type === "array") {
-				var array = action.value.split(",").map(parseFloat);
-				var choiceIds = node.choiceIds;
-				choiceIds.forEach(function (id, index) {
-					var subAction = Object.assign({}, action, { nodeId: id, value: array[index] });
-					normalizedTreeDict[id] = treeNode(source[id], subAction);
-				});
+				//console.log("reducers action.value:",action.value); // undefined ?!
+				//const array = action.value.split(",").map(parseFloat);
+				// 				const choiceIds = node.choiceIds;
+				// 				choiceIds.forEach( (id,index) => {
+				// 					const subAction = Object.assign({},action,{ nodeId: id, value:array[index] });
+				// 					normalizedTreeDict[id] = treeNode(source[id], subAction);
+				// 				});
 			} else {
 				normalizedTreeDict[nodeId] = treeNode(source[nodeId], action);
 				if (typeof parentId !== "undefined") normalizedTreeDict[parentId] = parentNode(source[parentId], action);
@@ -12788,7 +12789,7 @@ var BoolCell = function (_Component) {
 					zIndex: 1,
 					width: "16px",
 					height: "20px",
-					marginTop: "-1px" // !!! one pixel shift
+					marginTop: "-1px" // !!! This must go
 				}
 			};
 
@@ -13382,7 +13383,7 @@ var DisclosureTriangle = function DisclosureTriangle(props) {
 	var collapsed = props.collapsed;
 	var color = "darkgray";
 	var style = {
-		position: "relative",
+		position: "absolute",
 		marginTop: "5px",
 		marginBottom: "-10px",
 		borderStyle: "solid",
@@ -13989,6 +13990,7 @@ var ListRow = function (_Component) {
 	_createClass(ListRow, [{
 		key: "handleCheckClick",
 		value: function handleCheckClick(e) {
+			console.log("check", this.props.id);
 			e.stopPropagation(); // prevent selecting text with shiftKeyPressed
 			e.preventDefault(); // prevent selecting text with shiftKeyPressed
 			this.props.disclosureToggle(this.props.id);
@@ -14015,17 +14017,16 @@ var ListRow = function (_Component) {
 			var height = this.props.frame.size.height;
 			if (node.type === "bezier") height = 100; // ugh
 
-
 			var style = Object.assign({
 				boxSizing: "border-box",
 				paddingLeft: padding + "px",
 				opacity: this.props.opacity,
 				zIndex: this.props.zIndex,
-
 				left: left + "px",
 				width: "100%",
 				height: height + "px",
-				whiteSpace: "nowrap"
+				whiteSpace: "nowrap",
+				outline: "red"
 			}, this.props.style);
 
 			var nodeId = id;
@@ -14087,7 +14088,8 @@ var ListRow = function (_Component) {
 					cursor: "pointer",
 					opacity: 0,
 					width: "16px",
-					height: "20px"
+					height: "20px",
+					backgroundColor: "orange"
 				}
 			};
 			var disclosureProps = {
@@ -14688,7 +14690,7 @@ var flameBezierValues = [{ "id": "flameX0", "displayName": "x0", "type": "float"
 // 	{ "id": "flatTop", "displayName": "Flat Top", "type": "bool",  "default": true }
 // ];
 
-var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, //0.7071 },
+var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.65 }, //0.7071 },
 { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }];
 var wavy = [{ "id": "enableWavy", "displayName": "Enable", "type": "bool", "default": true }, { "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 2.0 }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
