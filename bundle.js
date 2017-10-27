@@ -13990,7 +13990,6 @@ var ListRow = function (_Component) {
 	_createClass(ListRow, [{
 		key: "handleCheckClick",
 		value: function handleCheckClick(e) {
-			console.log("check", this.props.id);
 			e.stopPropagation(); // prevent selecting text with shiftKeyPressed
 			e.preventDefault(); // prevent selecting text with shiftKeyPressed
 			this.props.disclosureToggle(this.props.id);

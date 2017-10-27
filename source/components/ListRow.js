@@ -44,7 +44,6 @@ const ListRow = (class extends Component {
 	}
 
 	handleCheckClick(e) {
-		console.log("check",this.props.id);
 		e.stopPropagation(); // prevent selecting text with shiftKeyPressed
 		e.preventDefault(); // prevent selecting text with shiftKeyPressed
 		this.props.disclosureToggle(this.props.id);
