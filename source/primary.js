@@ -179,7 +179,7 @@ class Primary extends Component {
 	refCallback(canvas) {
 		if (this.canvas !== null) return;
 		const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-		if (!gl) throw new Error("this requires WebGL");
+		if (!gl) console.warn("this requires WebGL"); // Not throwing just because there is no GL, can still export
 		this.canvas = canvas;
 		const meshShader = glShader( gl, vertexMeshShader, fragmentMeshShader ); // From tutorial, setup solid shaders
 		this.meshShader = meshShader;
@@ -195,7 +195,6 @@ class Primary extends Component {
 }
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
 	return Object.assign({}, ownProps, {
 		now: state.now,
 		mesh: plot.meshSelector(state)

@@ -12790,7 +12790,10 @@ var BoolCell = function (_Component) {
 					zIndex: 1,
 					width: "16px",
 					height: "20px",
-					marginTop: "-1px" // !!! This must go
+					marginTop: "-2px", // !!! This must go
+					paddingTop: "1px" // !!! it got worse
+					// 				marginTop:"-1px", // !!! This must go
+					// 				top:"0px" // !!! it got worse
 				}
 			};
 
@@ -14017,6 +14020,12 @@ var ListRow = function (_Component) {
 			var height = this.props.frame.size.height;
 			if (node.type === "bezier") height = 100; // ugh
 
+			// 		var letters = "0123456789ABCDEF";
+			// 		let debugColor = "#";
+			// 		for (let i=0; i<6; i++) {
+			// 			debugColor += letters[Math.floor(Math.random() * 16)];
+			// 		}
+
 			var style = Object.assign({
 				boxSizing: "border-box",
 				paddingLeft: padding + "px",
@@ -14025,8 +14034,8 @@ var ListRow = function (_Component) {
 				left: left + "px",
 				width: "100%",
 				height: height + "px",
-				whiteSpace: "nowrap",
-				outline: "red"
+				whiteSpace: "nowrap"
+				//backgroundColor:debugColor
 			}, this.props.style);
 
 			var nodeId = id;
@@ -14170,18 +14179,7 @@ var ListView = function (_Component) {
 	_createClass(ListView, [{
 		key: "shouldComponentUpdate",
 		value: function shouldComponentUpdate(props) {
-			var keys = Object.keys(this.props);
-			var i = keys.length;
-			while (i--) {
-				var key = keys[i];
-				if (key === "frame") {
-					// don't update on width change
-					if (props.frame.origin.x !== this.props.frame.origin.x) return true;
-					if (props.frame.origin.y !== this.props.frame.origin.y) return true;
-					if (props.frame.size.height !== this.props.frame.size.height) return true;
-				} else if (props[key] !== this.props[key]) return true;
-			};
-			return false;
+			return !props.inLiveResize; //draggingDivider;
 		}
 	}, {
 		key: "render",
@@ -14223,8 +14221,8 @@ var ListView = function (_Component) {
 }(_preact.Component);
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
-	return Object.assign({}, ownProps, {
+	return Object.assign({}, state, ownProps, {
+		inLiveResize: state.draggingDivider,
 		exposedIds: selectors.exposedIdsSelector(state),
 		normalizedTreeDict: selectors.normalizedTreeDictSelector(state),
 		flattenedIds: selectors.flattenedIdsSelector(state),
@@ -14333,12 +14331,12 @@ var PairView = function (_Component) {
 			};
 
 			var cursor = vertical ? "row-resize" : "col-resize";
-			if (this.props.draggingDivider) splitStyle.cursor = cursor;
+			var draggingDivider = this.props.draggingDivider;
+			if (draggingDivider) splitStyle.cursor = cursor;
 
 			var left = (0, _preact.cloneElement)(this.props.children[0], {
 				frame: leftFrame,
 				key: "leftPane"
-
 			});
 			var right = (0, _preact.cloneElement)(this.props.children[1], {
 				frame: rightFrame,
@@ -14377,7 +14375,6 @@ var PairView = function (_Component) {
 }(_preact.Component);
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
 	return { draggingDivider: state.draggingDivider };
 }
 
@@ -14694,15 +14691,16 @@ var flameBezierValues = [{ "id": "flameX0", "displayName": "x0", "type": "float"
 var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.65 }, //0.7071 },
 { "id": "sunRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.25 }, { "id": "sphereFraction", "displayName": "Slice", "type": "list", "listLabels": fractionLabels, "listValues": fractionValues, "default": fractionValues[1] }];
 var wavy = [{ "id": "enableWavy", "displayName": "Enable", "type": "bool", "default": true }, { "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 2.0 }];
+var flame = [{ "id": "useFlameBezier", "displayName": "Enable", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Cubic Bezier", "type": "bezier", "default": flameBezierValues }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false }, { "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues },
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false },
 //{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
-{ "id": "wavy", "displayName": "Wavy", "type": "group", "default": wavy }];
+{ "id": "wavy", "displayName": "Wavy", "type": "group", "default": wavy }, { "id": "flame", "displayName": "Flame", "type": "group", "default": flame }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];
 
-var presets = exports.presets = [{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 }, { "id": "resolution", "displayName": "Resolution", "type": "int", "rangeMin": 1, "rangeMax": 200, "default": 25 }, // <---
-{ "id": "sun", "displayName": "Sun", "type": "group", "default": sun }, { "id": "beam", "displayName": "Beam", "type": "group", "default": beam }, { "id": "base", "displayName": "Base", "type": "group", "default": base }, { "id": "debug", "displayName": "Debug", "type": "group", "default": debug }];
+var presets = exports.presets = [{ "id": "resolution", "displayName": "Resolution", "type": "int", "rangeMin": 1, "rangeMax": 200, "default": 25 }, // <---
+{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 }, { "id": "sun", "displayName": "Sun", "type": "group", "default": sun }, { "id": "beam", "displayName": "Beam", "type": "group", "default": beam }, { "id": "base", "displayName": "Base", "type": "group", "default": base }, { "id": "debug", "displayName": "Debug", "type": "group", "default": debug }];
 
 /***/ }),
 /* 105 */
@@ -14928,7 +14926,7 @@ var Primary = function (_Component) {
 		value: function refCallback(canvas) {
 			if (this.canvas !== null) return;
 			var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-			if (!gl) throw new Error("this requires WebGL");
+			if (!gl) console.warn("this requires WebGL"); // Not throwing just because there is no GL, can still export
 			this.canvas = canvas;
 			var meshShader = glShader(gl, vertexMeshShader, fragmentMeshShader); // From tutorial, setup solid shaders
 			this.meshShader = meshShader;
@@ -14946,7 +14944,6 @@ var Primary = function (_Component) {
 }(_preact.Component);
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
 	return Object.assign({}, ownProps, {
 		now: state.now,
 		mesh: plot.meshSelector(state)

@@ -9,17 +9,7 @@ import ListLayout from "./ListLayout.js";
 
 const ListView = class extends Component {
 	shouldComponentUpdate(props) {
-		const keys = Object.keys(this.props);
-		let i = keys.length;
-		while (i--) {
-			const key = keys[i];
-			if (key === "frame") { // don't update on width change
-				if (props.frame.origin.x !== this.props.frame.origin.x) return true;
-				if (props.frame.origin.y !== this.props.frame.origin.y) return true;
-				if (props.frame.size.height !== this.props.frame.size.height) return true;
-			} else if (props[key] !== this.props[key]) return true;
-		};
-		return false;
+		return !props.inLiveResize;//draggingDivider;
 	}
 	render() {
 		const props = this.props;
@@ -56,8 +46,8 @@ const ListView = class extends Component {
 };
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
-	return Object.assign({}, ownProps, {
+	return Object.assign({}, state, ownProps, {
+		inLiveResize: state.draggingDivider,
 		exposedIds: selectors.exposedIdsSelector(state),
 		normalizedTreeDict: selectors.normalizedTreeDictSelector(state),
 		flattenedIds: selectors.flattenedIdsSelector(state),

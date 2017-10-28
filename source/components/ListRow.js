@@ -64,6 +64,12 @@ const ListRow = (class extends Component {
 		let height = this.props.frame.size.height;
 		if (node.type === "bezier") height = 100; // ugh
 
+// 		var letters = "0123456789ABCDEF";
+// 		let debugColor = "#";
+// 		for (let i=0; i<6; i++) {
+// 			debugColor += letters[Math.floor(Math.random() * 16)];
+// 		}
+
 		const style = Object.assign({
 			boxSizing: "border-box",
 			paddingLeft: padding + "px",
@@ -73,7 +79,7 @@ const ListRow = (class extends Component {
 			width: "100%",
 			height: height + "px",
 			whiteSpace: "nowrap",
-			outline:"red"
+			//backgroundColor:debugColor
 		}, this.props.style);
 
 

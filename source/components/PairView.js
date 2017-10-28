@@ -56,12 +56,12 @@ var PairView = (class extends Component {
 		};
 		
 		const cursor = vertical ? "row-resize" : "col-resize";
-		if (this.props.draggingDivider) splitStyle.cursor = cursor;
-
+		const draggingDivider = this.props.draggingDivider;
+		if (draggingDivider) splitStyle.cursor = cursor;
+		
 		const left = cloneElement(this.props.children[0], {
 			frame: leftFrame,
 			key:"leftPane"
-			
 		});
 		const right = cloneElement(this.props.children[1], {
 			frame: rightFrame,
@@ -99,7 +99,6 @@ var PairView = (class extends Component {
 });
 
 function mapStateToProps(state, ownProps) {
-	//const state = outerState.main;
 	return { draggingDivider: state.draggingDivider };
 }
 

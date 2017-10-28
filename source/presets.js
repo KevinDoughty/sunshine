@@ -40,15 +40,17 @@ const wavy = [
 	{ "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 },
 	{ "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 2.0 },
 ];
+const flame = [
+	{ "id": "useFlameBezier", "displayName": "Enable", "type": "bool", "default": true },
+	{ "id": "flameBezier", "displayName": "Cubic Bezier", "type": "bezier", "default": flameBezierValues },
+];
 const beam = [
 	{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
 	{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 },
 	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false },
-	{ "id": "useFlameBezier", "displayName": "Use Flame Bezier", "type": "bool", "default": true },
-	{ "id": "flameBezier", "displayName": "Flame Bezier", "type": "bezier", "default": flameBezierValues },
 	//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
 	{ "id": "wavy", "displayName": "Wavy", "type": "group", "default":wavy },
-	
+	{ "id": "flame", "displayName": "Flame", "type": "group", "default":flame},
 ];
 
 const base = [
@@ -56,8 +58,8 @@ const base = [
 ];
 
 export const presets = [
-	{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 },
 	{ "id": "resolution", "displayName": "Resolution", "type": "int", "rangeMin": 1, "rangeMax": 200, "default": 25 },// <---
+	{ "id": "radius", "displayName": "Outer Radius", "type": "length", "rangeMin": 1, "rangeMax": 50, "default": 20 },
 	{ "id": "sun", "displayName": "Sun", "type": "group", "default":sun },
 	{ "id": "beam", "displayName": "Beam", "type": "group", "default":beam },
 	{ "id": "base", "displayName": "Base", "type": "group", "default":base },
