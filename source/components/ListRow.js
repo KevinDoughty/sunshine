@@ -84,7 +84,8 @@ const ListRow = (class extends Component {
 		}
 
 		const itemProps = {
-			style: style
+			style: style,
+			className: "listRow"
 		};
 		
 		const children = [];

@@ -11147,13 +11147,14 @@ function normalizedTreeDict() {
 		} else {
 			var node = source[nodeId];
 			if (node.type === "array") {
-				//console.log("reducers action.value:",action.value); // undefined ?!
-				//const array = action.value.split(",").map(parseFloat);
-				// 				const choiceIds = node.choiceIds;
-				// 				choiceIds.forEach( (id,index) => {
-				// 					const subAction = Object.assign({},action,{ nodeId: id, value:array[index] });
-				// 					normalizedTreeDict[id] = treeNode(source[id], subAction);
-				// 				});
+				if (action.type === actions.CHANGE_SETTING) {
+					var array = action.value.split(",").map(parseFloat);
+					var choiceIds = node.choiceIds;
+					choiceIds.forEach(function (id, index) {
+						var subAction = Object.assign({}, action, { nodeId: id, value: array[index] });
+						normalizedTreeDict[id] = treeNode(source[id], subAction);
+					});
+				}
 			} else {
 				normalizedTreeDict[nodeId] = treeNode(source[nodeId], action);
 				if (typeof parentId !== "undefined") normalizedTreeDict[parentId] = parentNode(source[parentId], action);
@@ -14035,7 +14036,8 @@ var ListRow = function (_Component) {
 			}
 
 			var itemProps = {
-				style: style
+				style: style,
+				className: "listRow"
 			};
 
 			var children = [];
