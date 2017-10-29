@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import * as actions from "../actions.js";
 import * as selectors from "../selectors.js";
 import ListRow from "./ListRow.js";
-import ListLayout from "./ListLayout.js";
+//import ListLayout from "./ListLayout.js";
 
 
 const ListView = class extends Component {
@@ -13,15 +13,25 @@ const ListView = class extends Component {
 	}
 	render() {
 		const props = this.props;
-		const layoutManager = new ListLayout(props);
+		//const layoutManager = new ListLayout(props);
 		const style = {
-			backgroundColor:"white"
+			backgroundColor:"white",
+			paddingLeft:"7px"
 		};
 
 		const children = props.exposedIds.map( (id, index) => {
-			const childProps = layoutManager.propsOfItemAtIndex(index);
-			
+			//const childProps = layoutManager.propsOfItemAtIndex(index);
 			const childNode = props.normalizedTreeDict[id];
+			const collapsed = (props.collapsedIds.indexOf(id) > -1);
+			const childProps = {
+				node: childNode,
+				height: props.dimension,
+				disclosureToggle: props.disclosureToggle,
+				depth: props.flattenedDepth[id],
+				collapsed,
+				id,
+				key:id
+			};
 			const childIds = childNode.childIds;
 			let childNodes = [];
 			if (childIds) childNodes = childIds.map( sub => {

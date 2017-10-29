@@ -12,7 +12,8 @@ const DisclosureTriangle = props => {
 		borderWidth: "10px 5px 0 5px",
 		borderColor: color + " transparent transparent transparent",
 		width: "0px",
-		height: "0px"
+		height: "0px",
+		top:"-2px"
 	};
 	if (collapsed) {
 		style.borderWidth = "5px 0 5px 10px";

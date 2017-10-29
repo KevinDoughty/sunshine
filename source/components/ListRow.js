@@ -55,32 +55,35 @@ const ListRow = (class extends Component {
 		if (!node) throw new Error("no node");
 		const childIds = node.childIds;
 
-		const inset = 7;
+		const inset = 0;
 		const margin = 15;
 		const depth = this.props.depth;
 		const padding = inset + (depth - 1) * margin;
-		const left = inset + depth * margin;
+		//const left = inset + depth * margin;
 
-		let height = this.props.frame.size.height;
+		//let height = this.props.frame.size.height;
+		let height = this.props.height;
 		if (node.type === "bezier") height = 100; // ugh
 
-// 		var letters = "0123456789ABCDEF";
-// 		let debugColor = "#";
-// 		for (let i=0; i<6; i++) {
-// 			debugColor += letters[Math.floor(Math.random() * 16)];
-// 		}
-
 		const style = Object.assign({
+			position:"relative",
 			boxSizing: "border-box",
 			paddingLeft: padding + "px",
 			opacity: this.props.opacity,
 			zIndex: this.props.zIndex,
-			left: left + "px",
+			//left: left + "px",
 			width: "100%",
 			height: height + "px",
 			whiteSpace: "nowrap",
-			//backgroundColor:debugColor
 		}, this.props.style);
+
+
+// 		const letters = "0123456789ABCDEF";
+// 		let debugColor = "#";
+// 		for (let i=0; i<6; i++) {
+// 			debugColor += letters[Math.floor(Math.random() * 16)];
+// 		}
+// 		style.backgroundColor = debugColor;
 
 
 		const nodeId = id;
@@ -152,7 +155,10 @@ const ListRow = (class extends Component {
 				opacity:0,
 				width:"16px",
 				height:"20px",
-				backgroundColor:"orange"
+				backgroundColor:"orange",
+				top:"-6px",
+				//marginLeft:"-5px"
+				//left:"2px"
 			}
 		};
 		const disclosureProps = {
