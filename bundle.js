@@ -3019,6 +3019,10 @@ var _reselect = __webpack_require__(79);
 
 var _selectors = __webpack_require__(25);
 
+// Selectors are completely pointless here.
+// Plotting calculation time is negligible, at least compared to half edge mesh data structure code
+// Remove for ease converting back to Tinkercad
+
 // Selectors are really tedious here, especially for simple, non-array values which should just be calculated.
 // Functions for each angle and slice length might be a bit excessive too
 
@@ -3053,7 +3057,6 @@ var settingsSelector = exports.settingsSelector = (0, _reselect.createSelector)(
 var sphereFractionSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.sphereFraction;
 });
-//const beamCountSelector = createSelector([settingsSelector], settings => settings.beamCount * 1);
 var beamCountSelector = (0, _reselect.createSelector)([settingsSelector, sphereFractionSelector], function (settings, sphereFraction) {
 	return Math.max(1, Math.min(32, sphereFraction === "quarter" ? Math.floor(settings.beamCount * 1) : settings.beamCount * 1));
 });
@@ -3070,7 +3073,7 @@ var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], funct
 	return Math.max(1, Math.min(100, settings.resolution * 1));
 }); // segments per quarter circle, for both latitude and longitude
 var ringsSelector = (0, _reselect.createSelector)([resolutionSelector], function (resolution) {
-	return resolution * 1;
+	return Math.round(resolution * 0.5);
 }); // latitude // stacked ring layers
 var radiusSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.radius * 1;
@@ -3111,6 +3114,9 @@ var flatTopSelector = (0, _reselect.createSelector)([settingsSelector], function
 var splitBeamsSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.splitBeams;
 });
+var clampBeamEdgesSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
+	return settings.clampBeamEdges;
+});
 
 var debugLeftSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.debugLeft;
@@ -3149,18 +3155,6 @@ var sunRadiusSelector = (0, _reselect.createSelector)([radiusSelector, horizonRa
 
 var sunHeightSelector = (0, _reselect.createSelector)([sunRadiusSelector, sunRatioSelector], function (sunRadius, sunRatio) {
 	return sunRadius * sunRatio;
-});
-
-// const starHeightSelector = createSelector(
-// 	[sunHeightSelector, starRatioSelector],
-// 	(sunHeight, starRatio) => {
-// 		return sunHeight * starRatio;
-// 	}
-// );
-
-var wavySelector = (0, _reselect.createSelector)([wavyCountSelector], function (wavyCount) {
-	//return x * Math.sin(wavyCount * x)/Math.PI*2;
-
 });
 
 var arcRadiansSelector = (0, _reselect.createSelector)([sphereFractionSelector], function (sphereFraction) {
@@ -3265,7 +3259,6 @@ var beamThetaArraySelector = (0, _reselect.createSelector)( // step 2
 	for (var i = 0; i <= per; i++) {
 		var theta = i * sliceDelta;
 		var starRadius = calculatedStarRadiusAtTheta(theta, slices, arcRadians, fullBeamCount, radius, sunRadius);
-		// 			if (false && i === per) starRadius = sunR; // yes
 		var sunR = radius * horizonRatio;
 		var starH = starHeight(sunR, starRatio);
 		var angleH = starTopAngle(starRadius, starH);
@@ -3275,8 +3268,6 @@ var beamThetaArraySelector = (0, _reselect.createSelector)( // step 2
 		var C = Math.asin(c / b * Math.sin(B));
 		var A = half - B - C;
 		var result = quarter - A;
-		// 			if (false && i === per) points.push(0); // yes
-		// 			else
 		points.push(result);
 	}
 	return points;
@@ -3467,7 +3458,13 @@ function lengthOfEdge(firstPoint, tipPoint) {
 	return Math.hypot(firstPoint[0] - tipPoint[0], firstPoint[1] - tipPoint[1]);
 }
 
-var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, bottomFaceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector, enableWavySelector, wavyCountSelector, wavyAmountSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, bottomFaceIndices, x0, y0, x1, y1, useFlameBezier, beamLengthVertexCount, splitBeams, enableWavy, wavyCount, wavyAmount) {
+function clampedBeamPoint(clampBeamEdges, sphereFraction, point) {
+	// This really needs to affect the z value, otherwise edges are jagged
+	if (!clampBeamEdges || sphereFraction === "whole") return point;
+	if (sphereFraction === "half") return [point[0], Math.max(0, point[1]), point[2]];
+	if (sphereFraction === "quarter") return [Math.max(0, point[0]), Math.max(0, point[1]), point[2]];
+}
+var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSelector, sliceDeltaSelector, sunRadiusSelector, sunHeightSelector, ringDeltaTopSelector, beamFullTopThetaSelector, beamThetaArraySelector, fullBeamCountSelector, arcRadiansSelector, radiusSelector, sphereFractionSelector, baseHeightSelector, bottomFaceIndicesSelector, x0Selector, y0Selector, x1Selector, y1Selector, useFlameBezierSelector, beamLengthVertexCountSelector, splitBeamsSelector, enableWavySelector, wavyCountSelector, wavyAmountSelector, clampBeamEdgesSelector], function (rings, slices, sliceDelta, sunRadius, sunHeight, ringDeltaTop, beamFullTopTheta, beamThetaArray, fullBeamCount, arcRadians, radius, sphereFraction, baseHeight, bottomFaceIndices, x0, y0, x1, y1, useFlameBezier, beamLengthVertexCount, splitBeams, enableWavy, wavyCount, wavyAmount, clampBeamEdges) {
 	var vertexData = [];
 	for (var i = 0; i < rings; i++) {
 		// latitude // stacked layers // the cap
@@ -3558,15 +3555,8 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var isTipSlice = beamSlice === _j2;
 			for (var _a4 = 1; _a4 < beamLengthVertexCount + 1; _a4++) {
 				// top side
-				//const x = (firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount);
-				//const y = (firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount);
-				//const regular = [x,y];
-				//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,firstPoint[0],firstPoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,topEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
 				var value = resolveBezier(useFlameBezier, x0, y0, x1, y1, firstPoint[0], firstPoint[1], tipPoint[0], tipPoint[1], _a4, beamLengthVertexCount, topEdgeLength, 1, isTipSlice || isEndPiece, enableWavy, wavyCount, wavyAmount);
-				vertexData.push([
-				//(useFlameBezier ? value[0] : x),
-				//(useFlameBezier ? value[1] : y),
-				value[0], value[1], firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / beamLengthVertexCount]);
+				vertexData.push(clampedBeamPoint(clampBeamEdges, sphereFraction, [value[0], value[1], firstPoint[2] + (tipPoint[2] - firstPoint[2]) * _a4 / beamLengthVertexCount]));
 			}
 			var k = (rings + intersectionAreaRings) * (slices + 1);
 			var oneIndex = k + _j2; // same as sun bottom, except j loop is one greater, thus too long
@@ -3574,15 +3564,8 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var bottomEdgeLength = lengthOfEdge(onePoint, tipPoint);
 			for (var _a5 = 1; _a5 < beamLengthVertexCount + 1; _a5++) {
 				// underside
-				//const x = (onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount);
-				//const y = (onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount);
-				//const regular = [x,y];
-				//const value = (isTipSlice || isEndPiece) ? regular : resolveBezier(x0,y0,x1,y1,onePoint[0],onePoint[1],tipPoint[0],tipPoint[1],a,beamLengthVertexCount,bottomEdgeLength,1, isTipSlice || isEndPiece, wavyCount, wavyScale, wavyAmount);
 				var _value = resolveBezier(useFlameBezier, x0, y0, x1, y1, onePoint[0], onePoint[1], tipPoint[0], tipPoint[1], _a5, beamLengthVertexCount, bottomEdgeLength, 1, isTipSlice || isEndPiece, enableWavy, wavyCount, wavyAmount);
-				vertexData.push([
-				//(useFlameBezier ? value[0] : x),
-				//(useFlameBezier ? value[1] : y),
-				_value[0], _value[1], onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]);
+				vertexData.push(clampedBeamPoint(clampBeamEdges, sphereFraction, [_value[0], _value[1], onePoint[2] + (tipPoint[2] - onePoint[2]) * _a5 / beamLengthVertexCount + pedestal]));
 			}
 		}
 
@@ -3604,18 +3587,11 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _firstRoot = (rings + _i3) * (slices + 1) + slice;
 			var _firstPoint = vertexData[_firstRoot];
 			var _beamSlice = tipNumber * per * 2;
-			//const isTipSlice = false;
-			//const isEndPiece = false;
 			var _topEdgeLength = lengthOfEdge(_firstPoint, tipPoint);
 			for (var _a6 = 1; _a6 < beamLengthVertexCount + 1; _a6++) {
 				// top side
-				//const x = firstPoint[0] + (tipPoint[0] - firstPoint[0]) * a / beamLengthVertexCount;
-				//const y = firstPoint[1] + (tipPoint[1] - firstPoint[1]) * a / beamLengthVertexCount;
 				var _value2 = resolveBezier(useFlameBezier, x0, y0, x1, y1, _firstPoint[0], _firstPoint[1], tipPoint[0], tipPoint[1], _a6, beamLengthVertexCount, _topEdgeLength, direction, false, enableWavy, wavyCount, wavyAmount);
-				vertexData.push([
-				//useFlameBezier ? value[0] : x,
-				//useFlameBezier ? value[1] : y,
-				_value2[0], _value2[1], _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / beamLengthVertexCount]);
+				vertexData.push(clampedBeamPoint(clampBeamEdges, sphereFraction, [_value2[0], _value2[1], _firstPoint[2] + (tipPoint[2] - _firstPoint[2]) * _a6 / beamLengthVertexCount]));
 			}
 			var _k = (rings + intersectionAreaRings) * (slices + 1);
 			var _oneIndex = _k + slice;
@@ -3623,13 +3599,8 @@ var sunVerticesSelector = (0, _reselect.createSelector)([ringsSelector, slicesSe
 			var _bottomEdgeLength = lengthOfEdge(_onePoint, tipPoint);
 			for (var _a7 = 1; _a7 < beamLengthVertexCount + 1; _a7++) {
 				// underside
-				//const x = onePoint[0] + (tipPoint[0] - onePoint[0]) * a / beamLengthVertexCount;
-				//const y = onePoint[1] + (tipPoint[1] - onePoint[1]) * a / beamLengthVertexCount;
 				var _value3 = resolveBezier(useFlameBezier, x0, y0, x1, y1, _onePoint[0], _onePoint[1], tipPoint[0], tipPoint[1], _a7, beamLengthVertexCount, _bottomEdgeLength, direction, false, enableWavy, wavyCount, wavyAmount);
-				vertexData.push([
-				//useFlameBezier ? value[0] : x,
-				//useFlameBezier ? value[1] : y,
-				_value3[0], _value3[1], _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / beamLengthVertexCount + pedestal]);
+				vertexData.push(clampedBeamPoint(clampBeamEdges, sphereFraction, [_value3[0], _value3[1], _onePoint[2] + (tipPoint[2] - _onePoint[2]) * _a7 / beamLengthVertexCount + pedestal]));
 			}
 		}
 	}
@@ -3948,7 +3919,7 @@ var meshSelector = exports.meshSelector = (0, _reselect.createSelector)([sunVert
 	mesh.process();
 	var shift = vec3.create();
 	vec3.set(shift, 0, 0, -baseHeight);
-	move(mesh, shift); // Mutates! // This causes the model to keep shifting if vertices are not recalculated, happens on debug check click.
+	move(mesh, shift); // Mutates!
 	return mesh;
 });
 
@@ -14542,9 +14513,7 @@ var sun = [{ "id": "horizonRatio", "displayName": "Horizon Radius Ratio", "type"
 var wavy = [{ "id": "enableWavy", "displayName": "Enable", "type": "bool", "default": true }, { "id": "wavyCount", "displayName": "Count", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 1.0 }, { "id": "wavyAmount", "displayName": "Amount", "type": "float", "rangeMin": 0.0, "rangeMax": 32.0, "default": 2.0 }];
 var flame = [{ "id": "useFlameBezier", "displayName": "Enable", "type": "bool", "default": true }, { "id": "flameBezier", "displayName": "Cubic Bezier", "type": "bezier", "default": flameBezierValues }];
 var beam = [{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
-{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false },
-//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
-{ "id": "wavy", "displayName": "Wavy", "type": "group", "default": wavy }, { "id": "flame", "displayName": "Flame", "type": "group", "default": flame }];
+{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 }, { "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false }, { "id": "flame", "displayName": "Flame", "type": "group", "default": flame }, { "id": "wavy", "displayName": "Wavy", "type": "group", "default": wavy }, { "id": "clampBeamEdges", "displayName": "Clamp Edges", "type": "bool", "default": true }];
 
 var base = [{ "id": "baseHeight", "displayName": "Base height", "type": "length", "rangeMin": 0, "rangeMax": 1.5, "default": 0.5 }];
 

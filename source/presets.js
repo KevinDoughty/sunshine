@@ -48,9 +48,10 @@ const beam = [
 	{ "id": "beamCount", "displayName": "Count Per Quarter Circle", "type": "int", "rangeMin": 3, "rangeMax": 64, "default": 4.5 }, // <---
 	{ "id": "starRatio", "displayName": "Height Ratio", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 1 },
 	{ "id": "splitBeams", "displayName": "Split First and Last Beam", "type": "bool", "default": false },
-	//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
-	{ "id": "wavy", "displayName": "Wavy", "type": "group", "default":wavy },
 	{ "id": "flame", "displayName": "Flame", "type": "group", "default":flame},
+	{ "id": "wavy", "displayName": "Wavy", "type": "group", "default":wavy },
+	{ "id": "clampBeamEdges", "displayName": "Clamp Edges", "type": "bool", "default": true },
+	//{ "id": "notImplemented", "displayName": "Not Implemented Yet", "type": "group", "default": notImplemented },
 ];
 
 const base = [
