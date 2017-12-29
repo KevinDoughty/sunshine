@@ -45,7 +45,7 @@ const enableWavySelector = createSelector([settingsSelector], settings => settin
 const wavyCountSelector = createSelector([settingsSelector], (settings) => Math.max(1, Math.min(32, settings.wavyCount * 1)));
 const wavyAmountSelector = createSelector([settingsSelector], (settings) => Math.max(0, Math.min(32, settings.wavyAmount * 1)));
 const resolutionSelector = createSelector([settingsSelector], settings => Math.max(1, Math.min(100, settings.resolution * 1))); // segments per quarter circle, for both latitude and longitude
-const ringsSelector = createSelector([resolutionSelector], resolution => Math.round(resolution * 0.5)); // latitude // stacked ring layers
+const ringsSelector = createSelector([resolutionSelector], resolution => Math.round(resolution * 1.0)); // latitude // stacked ring layers
 const radiusSelector = createSelector([settingsSelector], settings => settings.radius * 1);
 const sunRatioSelector = createSelector([settingsSelector], settings => settings.sunRatio * 1);
 const starRatioSelector = createSelector([settingsSelector], settings => settings.starRatio * 1);

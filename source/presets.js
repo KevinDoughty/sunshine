@@ -18,8 +18,8 @@ const debug = [
 ];
 
 const flameBezierValues = [
-	{ "id": "flameX0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1},
-	{ "id": "flameY0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.4},
+	{ "id": "flameX0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.01},
+	{ "id": "flameY0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5},
 	{ "id": "flameX1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2},
 	{ "id": "flameY1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3}
 ];

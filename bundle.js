@@ -3073,7 +3073,7 @@ var resolutionSelector = (0, _reselect.createSelector)([settingsSelector], funct
 	return Math.max(1, Math.min(100, settings.resolution * 1));
 }); // segments per quarter circle, for both latitude and longitude
 var ringsSelector = (0, _reselect.createSelector)([resolutionSelector], function (resolution) {
-	return Math.round(resolution * 0.5);
+	return Math.round(resolution * 1.0);
 }); // latitude // stacked ring layers
 var radiusSelector = (0, _reselect.createSelector)([settingsSelector], function (settings) {
 	return settings.radius * 1;
@@ -14500,7 +14500,7 @@ var fractionValues = ["quarter", "half", "whole"];
 
 var debug = [{ "id": "debugEven", "displayName": "Even", "type": "bool", "default": false }, { "id": "debugOdd", "displayName": "Odd", "type": "bool", "default": false }, { "id": "debugLeft", "displayName": "Left", "type": "bool", "default": false }, { "id": "debugRight", "displayName": "Right", "type": "bool", "default": false }, { "id": "debugTop", "displayName": "Top", "type": "bool", "default": false }, { "id": "debugBottom", "displayName": "Bottom", "type": "bool", "default": false }, { "id": "debugFirst", "displayName": "First", "type": "bool", "default": false }, { "id": "debugLast", "displayName": "Last", "type": "bool", "default": false }, { "id": "debugBase", "displayName": "Base", "type": "bool", "default": false }];
 
-var flameBezierValues = [{ "id": "flameX0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.1 }, { "id": "flameY0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.4 }, { "id": "flameX1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2 }, { "id": "flameY1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }];
+var flameBezierValues = [{ "id": "flameX0", "displayName": "x0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.01 }, { "id": "flameY0", "displayName": "y0", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.5 }, { "id": "flameX1", "displayName": "x1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.2 }, { "id": "flameY1", "displayName": "y1", "type": "float", "rangeMin": 0, "rangeMax": 1, "default": 0.3 }];
 
 // const notImplemented = [
 // 	{ "id": "beamTopExtended", "displayName": "Extended Beam Top", "type": "bool", "default": false },
